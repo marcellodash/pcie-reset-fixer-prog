@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
 {
    QCoreApplication app(argc, argv);
 
+   /*
    // Task parented to the application so that it
    // will be deleted by the application.
    Task *task = new Task(&app);
@@ -18,6 +19,23 @@ int main(int argc, char *argv[])
 
    // This will run the task from the application event loop.
    QTimer::singleShot(0, task, SLOT(run()));
+   */
+
+   if(argc < 2)
+   {
+       return -10;
+   }
+
+   if(argv[1][1] != 0)
+   {
+       return -11;
+   }
+
+   if(!(argv[1][0] == '0' ||
+        argv[1][0] == '1'))
+   {
+      return -12;
+   }
 
    SerialUsb serial;
 
@@ -29,7 +47,7 @@ int main(int argc, char *argv[])
        return serial.getLastError();
    }
 
-   if(!serial.setGpuPower(true)) {
+   if(!serial.setGpuPower(argv[1][0] == '1')) {
        return serial.getLastError();
    }
 

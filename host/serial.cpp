@@ -10,6 +10,7 @@ SerialUsb::SerialUsb()
 
 bool SerialUsb::open()
 {
+    m_LastError = 0;
     m_Serial.close();
     m_Serial.setPortName(m_portName);
     if(!m_Serial.open(QIODevice::ReadWrite)) {
