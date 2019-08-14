@@ -27,6 +27,9 @@ void SerialUsb::close()
 bool SerialUsb::sendCommand(char cmd)
 {
     char str[10] = MAGIC;
+
+    m_LastError = 0;
+
     str[2] = cmd;
     str[3] = '\r';
     m_Serial.write(str, 4);
@@ -36,8 +39,18 @@ bool SerialUsb::sendCommand(char cmd)
         if(m_Serial.waitForReadyRead(m_Timeout)) {
             QByteArray responseData = m_Serial.readAll();
 
+            if(responseData.size() < 7) {
+                m_LastError = -3;
+                return false;
+            }
 
-            int a = 1;
+            if(responseData[0] != '*'  ||
+               responseData[1] != cmd  ||
+               responseData[2] != '\r' ||
+               responseData[3] != '\n'  ) {
+                m_LastError = -4;
+                return false;
+            }
         }
     }
     else {
