@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
    // This will run the task from the application event loop.
    QTimer::singleShot(0, task, SLOT(run()));
 
-
    SerialUsb serial;
 
    serial.setPortName("ttyACM0");
@@ -27,10 +26,12 @@ int main(int argc, char *argv[])
    auto status = serial.open();
 
    if(!status) {
-       return -1;
+       return serial.getLastError();
    }
 
-   serial.setGpuPower(true);
+   if(!serial.setGpuPower(true)) {
+       return serial.getLastError();
+   }
 
-   return app.exec();
+   return 0;//app.exec();
 }

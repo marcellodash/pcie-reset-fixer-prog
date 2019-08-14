@@ -10,12 +10,7 @@ public:
     Task(QObject *parent = nullptr);
 
 public slots:
-    void run()
-    {
-        // Do processing here
-
-        emit finished();
-    }
+    void run();
 
 signals:
     void finished();
