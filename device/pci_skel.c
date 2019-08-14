@@ -40,6 +40,8 @@ static void remove(struct pci_dev *dev)
    printk(KERN_INFO "PCIe skel remove\n");
 }
 
+static char ids[1024] __initdata;
+
 static struct pci_driver pci_driver = {
 	.name = "pci_skel",
 	.id_table = NULL, // Only dynamic ids
@@ -47,6 +49,49 @@ static struct pci_driver pci_driver = {
 	.remove = remove,
 	//.err_handler TODO
 };
+
+static void __init pci_fill_ids(void)
+{
+	char *p, *id;
+	int rc;
+	strcpy(ids, "8086:a348");
+
+	/* no ids passed actually */
+	if (ids[0] == '\0')
+		return;
+
+	/* add ids specified in the module parameter */
+	p = ids;
+	while ((id = strsep(&p, ","))) {
+		unsigned int vendor, device, subvendor = PCI_ANY_ID,
+			subdevice = PCI_ANY_ID, class = 0, class_mask = 0;
+		int fields;
+
+		if (!strlen(id))
+			continue;
+
+		fields = sscanf(id, "%x:%x:%x:%x:%x:%x",
+				&vendor, &device, &subvendor, &subdevice,
+				&class, &class_mask);
+
+		if (fields < 2) {
+			pr_warn("invalid id string \"%s\"\n", id);
+			continue;
+		}
+
+		printk(KERN_INFO "pci_add_dynid\n");
+		rc = pci_add_dynid(&pci_driver, vendor, device,
+				   subvendor, subdevice, class, class_mask, 0);
+		if (rc)
+			pr_warn("failed to add dynamic id [%04x:%04x[%04x:%04x]] class %#08x/%08x (%d)\n",
+				vendor, device, subvendor, subdevice,
+				class, class_mask, rc);
+		else
+			pr_info("add [%04x:%04x[%04x:%04x]] class %#08x/%08x\n",
+				vendor, device, subvendor, subdevice,
+				class, class_mask);
+	}
+}
 
 
 int setD3Hot(struct pci_dev *dev)
@@ -69,9 +114,11 @@ int setD3Hot(struct pci_dev *dev)
 
 static int __init pci_skel_init(void)
 {
-	printk(KERN_INFO "PCIe skel init\n");
- 
-	return pci_register_driver(&pci_driver);
+   int status = 0;
+   printk(KERN_INFO "PCIe skel init\n");
+   status = pci_register_driver(&pci_driver);
+   pci_fill_ids();
+   return status;
 }
 
 static void __exit pci_skel_exit(void)
