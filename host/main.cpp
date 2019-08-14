@@ -4,6 +4,8 @@
 #include "serial.h"
 #include "task.h"
 
+#include <stdio.h>
+
 int main(int argc, char *argv[])
 {
    QCoreApplication app(argc, argv);
@@ -37,6 +39,8 @@ int main(int argc, char *argv[])
       return -12;
    }
 
+   bool gpuPower = (argv[1][0] == '1');
+
    SerialUsb serial;
 
    serial.setPortName("ttyACM0");
@@ -47,9 +51,17 @@ int main(int argc, char *argv[])
        return serial.getLastError();
    }
 
-   if(!serial.setGpuPower(argv[1][0] == '1')) {
+   if(!serial.setGpuPower(gpuPower)) {
        return serial.getLastError();
    }
 
-   return 0;//app.exec();
+   if(gpuPower) {
+       printf("GPU power on\n");
+   }
+   else {
+       printf("GPU power off\n");
+   }
+
+   return 0;
+   //app.exec();
 }
