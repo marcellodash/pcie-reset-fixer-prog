@@ -12,6 +12,24 @@ static unsigned char skel_get_revision(struct pci_dev *dev)
 	return revision;
 }
 
+int setD3Hot(struct pci_dev *dev)
+{
+   int status = 0;
+   /*
+    * pci-core sets the device power state to an unknown value at
+    * bootup and after being removed from a driver.  The only
+    * transition it allows from this unknown state is to D0, which
+    * typically happens when a driver calls pci_enable_device().
+    * We're not ready to enable the device yet, but we do want to
+    * be able to get to D3.  Therefore first do a D0 transition
+    * before going to D3.
+    */
+   status = pci_set_power_state(dev, PCI_D0);
+   status = pci_set_power_state(dev, PCI_D3hot);
+   //status = pci_set_power_state(dev, PCI_D3cold);
+   return status;
+}
+
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
 
@@ -24,7 +42,9 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 	 * Like calling request_region();
 	 */
 	pci_enable_device(dev);
-	
+
+	setD3Hot(dev);
+
 	if (skel_get_revision(dev) == 0x42)
 		return -ENODEV;
 
@@ -79,7 +99,6 @@ static void __init pci_fill_ids(void)
 			continue;
 		}
 
-		printk(KERN_INFO "pci_add_dynid\n");
 		rc = pci_add_dynid(&pci_driver, vendor, device,
 				   subvendor, subdevice, class, class_mask, 0);
 		if (rc)
@@ -93,24 +112,6 @@ static void __init pci_fill_ids(void)
 	}
 }
 
-
-int setD3Hot(struct pci_dev *dev)
-{
-   int status = 0;
-   /*
-    * pci-core sets the device power state to an unknown value at
-    * bootup and after being removed from a driver.  The only
-    * transition it allows from this unknown state is to D0, which
-    * typically happens when a driver calls pci_enable_device().
-    * We're not ready to enable the device yet, but we do want to
-    * be able to get to D3.  Therefore first do a D0 transition
-    * before going to D3.
-    */
-   status = pci_set_power_state(dev, PCI_D0);
-   status = pci_set_power_state(dev, PCI_D3hot);
-   //status = pci_set_power_state(dev, PCI_D3cold);
-   return status;
-}
 
 static int __init pci_skel_init(void)
 {
