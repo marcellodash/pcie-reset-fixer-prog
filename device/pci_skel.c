@@ -1,20 +1,20 @@
-//#include <linux/config.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/init.h>
-
+/*
 static unsigned char skel_get_revision(struct pci_dev *dev)
 {
-	u8 revision;
+   u8 revision;
 
-	pci_read_config_byte(dev, PCI_REVISION_ID, &revision);
-	return revision;
+   pci_read_config_byte(dev, PCI_REVISION_ID, &revision);
+
+   return revision;
 }
-
+*/
 int setD3Hot(struct pci_dev *dev)
 {
-   int status = 0;
+   int rc = 0;
    /*
     * pci-core sets the device power state to an unknown value at
     * bootup and after being removed from a driver.  The only
@@ -24,10 +24,56 @@ int setD3Hot(struct pci_dev *dev)
     * be able to get to D3.  Therefore first do a D0 transition
     * before going to D3.
     */
-   status = pci_set_power_state(dev, PCI_D0);
-   status = pci_set_power_state(dev, PCI_D3hot);
-   //status = pci_set_power_state(dev, PCI_D3cold);
-   return status;
+   rc = pci_set_power_state(dev, PCI_D0);
+
+   if(rc)
+   {
+      printk(KERN_INFO "set PCI_D0 error\n");
+   }
+
+   rc = pci_set_power_state(dev, PCI_D3hot);
+
+   if(rc)
+   {
+      printk(KERN_INFO "set PCI_D3hot error\n");
+   }
+
+   /*rc = pci_set_power_state(dev, PCI_D3cold);
+
+   if(rc)
+   {
+      printk(KERN_INFO "set PCI_D3cold error\n");
+   }*/
+
+   return rc;
+}
+
+static void showPowerState(struct pci_dev *dev)
+{
+   switch(dev->current_state)
+   {
+      case PCI_D0:
+         printk(KERN_INFO "PCI_D0\n");
+         break;	   
+      case PCI_D1:
+         printk(KERN_INFO "PCI_D1\n");
+         break;	   
+      case PCI_D2:
+         printk(KERN_INFO "PCI_D2\n");
+         break;	   
+      case PCI_D3hot:
+         printk(KERN_INFO "PCI_D3hot\n");
+         break;	   
+      case PCI_D3cold:
+         printk(KERN_INFO "PCI_D3cold\n");
+         break;	   
+      case PCI_UNKNOWN:
+         printk(KERN_INFO "PCI_UNKNOWN\n");
+         break;	   
+      case PCI_POWER_ERROR:
+         printk(KERN_INFO "PCI_POWER_ERROR\n");
+         break;	   
+   }
 }
 
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
@@ -38,29 +84,45 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
-	/* Do probing type stuff here.  
-	 * Like calling request_region();
-	 */
-	pci_enable_device(dev);
+   printk(KERN_INFO "**** Current power state ****\n");
+   showPowerState(dev);
 
-	setD3Hot(dev);
+   /* Do probing type stuff here.  
+    * Like calling request_region();
+    */
+   pci_enable_device(dev);
 
-	if (skel_get_revision(dev) == 0x42)
-		return -ENODEV;
+   setD3Hot(dev);
 
+   printk(KERN_INFO "**** New power state ****\n");
+   showPowerState(dev);
 
-	return 0;
+   //if (skel_get_revision(dev) == 0x42)
+   //  return -ENODEV;
+
+   return 0;
 }
 
 static void remove(struct pci_dev *dev)
 {
-	/* clean up any allocated resources and stuff here.
-	 * like call release_region();
-	 */
-   printk(KERN_INFO "PCIe skel remove\n");
+   int rc = 0;
+
+   showPowerState(dev);
+
+   /* clean up any allocated resources and stuff here.
+    * like call release_region();
+    */
+    printk(KERN_INFO "PCIe skel remove\n");
+
+   rc = pci_set_power_state(dev, PCI_D0);
+   
+   if(rc)
+   {
+      printk(KERN_INFO "set PCI_D0 error\n");
+   }
+
 }
 
-static char ids[1024] __initdata;
 
 static struct pci_driver pci_driver = {
 	.name = "pci_skel",
@@ -70,11 +132,13 @@ static struct pci_driver pci_driver = {
 	//.err_handler TODO
 };
 
+static char ids[1024] __initdata;
+
 static void __init pci_fill_ids(void)
 {
 	char *p, *id;
 	int rc;
-	strcpy(ids, "8086:a348");
+	//strcpy(ids, "8086:a348");
 
 	/* no ids passed actually */
 	if (ids[0] == '\0')
