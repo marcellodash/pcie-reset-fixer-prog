@@ -16,14 +16,12 @@
 #define SYSDRIVER "/sys/bus/pci/drivers/"
 
 #define init_module(module_image, len, param_values) syscall(__NR_init_module, module_image, len, param_values)
-#define finit_module(fd, param_values, flags) syscall(__NR_finit_module, fd, param_values, flags)
+#define finit_module(fd, param_values, flags)        syscall(__NR_finit_module, fd, param_values, flags)
+#define delete_module(name, flags)                   syscall(__NR_delete_module, name, flags)
 
 bool PCI::loadDriver()
 {
-    int fd = 0;
-    finit_module(fd, "", 0);
-
-    return true;
+    return false;
 }
 
 bool PCI::unloadDriver()
