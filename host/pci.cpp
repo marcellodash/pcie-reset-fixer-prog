@@ -72,7 +72,7 @@ bool PCI::unbind(const QString &device)
     return true;
 }
 
-bool PCI::new_id(const QString &device)
+bool PCI::new_id(const QString &id)
 {
     QFile file(SYSDRIVER + m_DriverName + "/new_id");
 
@@ -81,7 +81,7 @@ bool PCI::new_id(const QString &device)
         return false;
     }
 
-    if(file.write(device.toUtf8()) < 0)
+    if(file.write(id.toUtf8()) < 0)
     {
         return false;
     }
