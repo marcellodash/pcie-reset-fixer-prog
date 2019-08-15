@@ -31,25 +31,25 @@ int setD3Hot(struct pci_dev *dev)
       printk(KERN_INFO "set PCI_D0 error\n");
    }
 
-   rc = pci_set_power_state(dev, PCI_D3hot);
+   /*rc = pci_set_power_state(dev, PCI_D3hot);
 
    if(rc)
    {
       printk(KERN_INFO "set PCI_D3hot error\n");
-   }
+   }*/
 
-   /*rc = pci_set_power_state(dev, PCI_D3cold);
+   rc = pci_set_power_state(dev, PCI_D3cold);
 
    if(rc)
    {
       printk(KERN_INFO "set PCI_D3cold error\n");
-   }*/
+   }
 
    return rc;
 }
 
 static void showPowerState(struct pci_dev *dev)
-{
+{ 
    switch(dev->current_state)
    {
       case PCI_D0:
@@ -72,7 +72,10 @@ static void showPowerState(struct pci_dev *dev)
          break;	   
       case PCI_POWER_ERROR:
          printk(KERN_INFO "PCI_POWER_ERROR\n");
-         break;	   
+         break;	  
+      default:
+         printk(KERN_INFO "Invalid PCI power state\n");
+	 break;
    }
 }
 
@@ -180,7 +183,7 @@ static void __init pci_fill_ids(void)
 static int __init pci_skel_init(void)
 {
    int status = 0;
-   printk(KERN_INFO "PCIe skel init\n");
+   printk(KERN_INFO "########################## PCIe skel init #######################\n");
    status = pci_register_driver(&pci_driver);
    pci_fill_ids();
    return status;
@@ -188,8 +191,9 @@ static int __init pci_skel_init(void)
 
 static void __exit pci_skel_exit(void)
 {
-	printk(KERN_INFO "PCIe skel exit\n");
-	pci_unregister_driver(&pci_driver);
+   printk(KERN_INFO "PCIe skel exit\n");
+   printk(KERN_INFO "##########################i######################################\n");
+   pci_unregister_driver(&pci_driver);
 }
 
 
