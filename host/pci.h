@@ -18,6 +18,9 @@ public:
    bool unbind(const QString &device);
    bool new_id(const QString &device);
    void setDriverName(const QString &driver) { m_DriverName = driver; }
+   bool isDriverLoad();
+   bool loadDriver();
+   bool unloadDriver();
 
 private:
    QString m_DriverName;

@@ -12,23 +12,32 @@ int main(int argc, char *argv[])
 
    if(argc < 2)
    {
-       return -10;
+       return -1;
    }
 
    if(argv[1][1] != 0)
    {
-       return -11;
+       return -1;
    }
 
    if(!(argv[1][0] == '0' ||
         argv[1][0] == '1'))
    {
-      return -12;
+      return -1;
    }
 
    bool gpuPower = (argv[1][0] == '1');
 
    SerialUsb serial;
+   PCI pci;
+
+   pci.setDriverName("pci_skel");
+
+   if(!pci.isDriverLoad())
+   {
+      return -2;
+   }
+
 
    serial.setPortName("ttyACM0");
 

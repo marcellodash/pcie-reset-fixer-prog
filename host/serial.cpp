@@ -4,6 +4,8 @@
 
 #define MAGIC "mc"
 
+#define BASE_ERROR (-1000)
+
 SerialUsb::SerialUsb()
 {
 }
@@ -14,7 +16,7 @@ bool SerialUsb::open()
     m_Serial.close();
     m_Serial.setPortName(m_portName);
     if(!m_Serial.open(QIODevice::ReadWrite)) {
-        m_LastError = -1;
+        m_LastError = BASE_ERROR - 2;
         return false;
     }
     return true;
@@ -41,7 +43,7 @@ bool SerialUsb::sendCommand(char cmd)
             QByteArray responseData = m_Serial.readAll();
 
             if(responseData.size() < 7) {
-                m_LastError = -3;
+                m_LastError = BASE_ERROR - 3;
                 return false;
             }
 
@@ -49,13 +51,13 @@ bool SerialUsb::sendCommand(char cmd)
                responseData[1] != cmd  ||
                responseData[2] != '\r' ||
                responseData[3] != '\n'  ) {
-                m_LastError = -4;
+                m_LastError = BASE_ERROR - 4;
                 return false;
             }
         }
     }
     else {
-        m_LastError = -2;
+        m_LastError = BASE_ERROR -2;
         return false;
     }
 
