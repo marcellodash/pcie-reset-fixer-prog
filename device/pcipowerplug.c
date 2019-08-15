@@ -82,7 +82,7 @@ static void showPowerState(struct pci_dev *dev)
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
 
-   pr_info("PCIe skel probe\n");
+   pr_info("pciepowerplug probe\n");
 
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
@@ -113,7 +113,7 @@ static void remove(struct pci_dev *dev)
    /* clean up any allocated resources and stuff here.
     * like call release_region();
     */
-   pr_info("PCIe skel remove\n");
+   pr_info("pciepowerplug remove\n");
 
    pr_info("Current state\n");
    showPowerState(dev);
@@ -131,7 +131,7 @@ static void remove(struct pci_dev *dev)
 
 
 static struct pci_driver pci_driver = {
-	.name = "pci_skel",
+	.name = "pcipowerplug",
 	.id_table = NULL, // Only dynamic ids
 	.probe = probe,
 	.remove = remove,

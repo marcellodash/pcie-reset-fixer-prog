@@ -31,13 +31,13 @@ int main(int argc, char *argv[])
    SerialUsb serial;
    PCI pci;
 
-   pci.setDriverName("pci_skel");
+   pci.setDriverName("pcipowerplug");
 
    if(!pci.isDriverLoad())
    {
+      printf("Driver not loaded");
       return -2;
    }
-
 
    serial.setPortName("ttyACM0");
 
