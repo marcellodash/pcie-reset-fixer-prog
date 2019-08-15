@@ -28,21 +28,21 @@ int setD3Hot(struct pci_dev *dev)
 
    if(rc)
    {
-      printk(KERN_INFO "set PCI_D0 error\n");
+      pr_info("set PCI_D0 error\n");
    }
 
    /*rc = pci_set_power_state(dev, PCI_D3hot);
 
    if(rc)
    {
-      printk(KERN_INFO "set PCI_D3hot error\n");
+      pr_info("set PCI_D3hot error\n");
    }*/
 
    rc = pci_set_power_state(dev, PCI_D3cold);
 
    if(rc)
    {
-      printk(KERN_INFO "set PCI_D3cold error\n");
+      pr_info("set PCI_D3cold error\n");
    }
 
    return rc;
@@ -53,28 +53,28 @@ static void showPowerState(struct pci_dev *dev)
    switch(dev->current_state)
    {
       case PCI_D0:
-         printk(KERN_INFO "PCI_D0\n");
+         pr_info("PCI_D0\n");
          break;	   
       case PCI_D1:
-         printk(KERN_INFO "PCI_D1\n");
+         pr_info("PCI_D1\n");
          break;	   
       case PCI_D2:
-         printk(KERN_INFO "PCI_D2\n");
+         pr_info("PCI_D2\n");
          break;	   
       case PCI_D3hot:
-         printk(KERN_INFO "PCI_D3hot\n");
+         pr_info("PCI_D3hot\n");
          break;	   
       case PCI_D3cold:
-         printk(KERN_INFO "PCI_D3cold\n");
+         pr_info("PCI_D3cold\n");
          break;	   
       case PCI_UNKNOWN:
-         printk(KERN_INFO "PCI_UNKNOWN\n");
+         pr_info("PCI_UNKNOWN\n");
          break;	   
       case PCI_POWER_ERROR:
-         printk(KERN_INFO "PCI_POWER_ERROR\n");
+         pr_info("PCI_POWER_ERROR\n");
          break;	  
       default:
-         printk(KERN_INFO "Invalid PCI power state\n");
+         pr_err("Invalid PCI power state\n");
 	 break;
    }
 }
@@ -82,12 +82,12 @@ static void showPowerState(struct pci_dev *dev)
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
 
-   printk(KERN_INFO "PCIe skel probe\n");
+   pr_info("PCIe skel probe\n");
 
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
-   printk(KERN_INFO "**** Current power state ****\n");
+   pr_info("**** Current power state ****\n");
    showPowerState(dev);
 
    /* Do probing type stuff here.  
@@ -97,7 +97,7 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 
    setD3Hot(dev);
 
-   printk(KERN_INFO "**** New power state ****\n");
+   pr_info("**** New power state ****\n");
    showPowerState(dev);
 
    //if (skel_get_revision(dev) == 0x42)
@@ -110,12 +110,13 @@ static void remove(struct pci_dev *dev)
 {
    int rc = 0;
 
-   showPowerState(dev);
-
    /* clean up any allocated resources and stuff here.
     * like call release_region();
     */
-    printk(KERN_INFO "PCIe skel remove\n");
+   pr_info("PCIe skel remove\n");
+
+   pr_info("Current state\n");
+   showPowerState(dev);
 
    rc = pci_set_power_state(dev, PCI_D0);
    
@@ -124,6 +125,8 @@ static void remove(struct pci_dev *dev)
       printk(KERN_INFO "set PCI_D0 error\n");
    }
 
+   pr_info("New state\n");
+   showPowerState(dev);
 }
 
 
@@ -192,7 +195,7 @@ static int __init pci_skel_init(void)
 static void __exit pci_skel_exit(void)
 {
    printk(KERN_INFO "PCIe skel exit\n");
-   printk(KERN_INFO "##########################i######################################\n");
+   printk(KERN_INFO "################################################################\n");
    pci_unregister_driver(&pci_driver);
 }
 
