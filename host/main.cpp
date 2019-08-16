@@ -21,20 +21,25 @@ int setGpu(const QString &device, const QString &command)
         return 1;
     }
 
-    if(!reset_pci.isDriverLoad())
-    {
-       if(bVerbose) qCritical() << "PCI reset fixer device driver not loaded";
+    if(!reset_pci.isDriverLoad()) {
+       qCritical() << "PCI reset fixer device driver not loaded";
        return 2;
     }
 
-    if(!vfio_pci.isDriverLoad())
-    {
-       if(bVerbose) qCritical() << "PCI VFIO device driver not loaded\n";
+    if(!vfio_pci.isDriverLoad()) {
+       qCritical() << "PCI VFIO device driver not loaded";
        return 3;
     }
 
-    if(reset_pci.isBind(device)) {
-        if(bVerbose) qInfo() << "Device binded for device";
+    if(!vfio_pci.isDeviceExists(device)) {
+        qCritical() << "Device " + device + "don't exist";
+        return 4;
+    }
+
+    if(!vfio_pci.isBind(device
+                        )) {
+       qCritical() << "Device " << device << "must be binded on vfio-pci";
+       return 4;
     }
 
     serial.setPortName("ttyACM0");

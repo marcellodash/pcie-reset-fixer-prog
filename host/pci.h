@@ -22,6 +22,7 @@ public:
    bool unbind(const QString &device);
    bool new_id(const QString &device);
    bool isDriverLoad();
+   bool isDeviceExists(const QString &device);
    bool loadDriver();
    bool unloadDriver();
    bool isBind(const QString &device);

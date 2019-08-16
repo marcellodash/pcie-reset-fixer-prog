@@ -48,6 +48,11 @@ bool PCI::isDriverLoad()
     return dir.exists();
 }
 
+bool PCI::isDeviceExists(const QString &device)
+{
+    return true;
+}
+
 bool PCI::bind(const QString &device)
 {
     QFile file(SYSDRIVER + m_DriverName + "/bind");
