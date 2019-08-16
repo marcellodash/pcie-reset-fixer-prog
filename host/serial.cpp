@@ -68,3 +68,8 @@ bool SerialUsb::setGpuPower(bool value)
 {
     return sendCommand(value ? '1' : '0');
 }
+
+bool SerialUsb::ping()
+{
+    return sendCommand('3');
+}

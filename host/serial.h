@@ -15,6 +15,7 @@ public:
     void setPortName(const QString &name) { m_portName = name; }
 
     bool setGpuPower(bool value);
+    bool ping();
     int getLastError() { return m_LastError; }
 
 private:

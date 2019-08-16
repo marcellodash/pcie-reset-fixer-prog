@@ -49,6 +49,8 @@ int setGpu(int id, bool gpuPower)
     else {
         if(bVerbose) qInfo() << "GPU power off";
     }
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
@@ -62,6 +64,13 @@ int main(int argc, char *argv[])
 
    QCommandLineOption verboseOption("c", QCoreApplication::translate("main", "verbose"));
    parser.addOption(verboseOption);
+
+
+   // An option with a value
+   QCommandLineOption deviceOption(QStringList() << "s" << "device",
+           QCoreApplication::translate("main", "PCIe device"),
+           QCoreApplication::translate("main", "[[[[<domain>]:]<bus>]:][<slot>][.[<func>]]"));
+   parser.addOption(deviceOption);
 
    parser.process(app);
 
