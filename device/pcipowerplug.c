@@ -201,7 +201,7 @@ static void __init pci_fill_ids(void)
 static int __init pci_skel_init(void)
 {
    int status = 0;
-   printk(KERN_INFO "########################## PCIe skel init #######################\n");
+   pr_info("########################## PCIe skel init #######################\n");
    status = pci_register_driver(&pci_driver);
    pci_fill_ids();
    return status;
@@ -209,8 +209,8 @@ static int __init pci_skel_init(void)
 
 static void __exit pci_skel_exit(void)
 {
-   printk(KERN_INFO "PCIe skel exit\n");
-   printk(KERN_INFO "################################################################\n");
+   pr_info("PCIe skel exit\n");
+   pr_info("################################################################\n");
    pci_unregister_driver(&pci_driver);
 }
 
