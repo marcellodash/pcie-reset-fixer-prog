@@ -13,7 +13,7 @@ CFLAGS += $(DEBFLAGS) -I$(LDDINCDIR)
 ifneq ($(KERNELRELEASE),)
 # call from kernel build system
 
-obj-m	+= pcipowerplug.o
+obj-m	+= pwplug-pci.o
 #vfio_pci-objs := vfio_pci_config.o vfio_pci_intrs.o vfio_pci_igd.o vfio_pci_intrs.o vfio_pci_nvlink2.o vfio_pci_rdwr.o
 
 else

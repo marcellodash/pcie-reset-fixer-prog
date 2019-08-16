@@ -147,7 +147,7 @@ static void remove(struct pci_dev *dev)
 
 
 static struct pci_driver pci_driver = {
-	.name = "pcipowerplug",
+	.name = "pwplug-pci",
 	.id_table = NULL, // Only dynamic ids
 	.probe = probe,
 	.remove = remove,
@@ -201,7 +201,7 @@ static void __init pci_fill_ids(void)
 static int __init pci_reset_fixer_init(void)
 {
    int status = 0;
-   pr_info("########################## PCIe skel init #######################\n");
+   pr_info("########################## PCIe power reset init #######################\n");
    status = pci_register_driver(&pci_driver);
    pci_fill_ids();
    return status;
@@ -209,7 +209,6 @@ static int __init pci_reset_fixer_init(void)
 
 static void __exit pci_reset_fixer_exit(void)
 {
-   pr_info("PCIe skel exit\n");
    pr_info("################################################################\n");
    pci_unregister_driver(&pci_driver);
 }

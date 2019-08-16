@@ -22,7 +22,7 @@ int setGpu(const QString &device, const QString &command)
         return serial.getLastError();
     }
 
-    PCI power_plug_pci("pcipowerplug");
+    PCI power_plug_pci("pwplug-pci");
     PCI vfio_pci("vfio-pci");
 
     if(command != "1" && command != "0") {
@@ -30,12 +30,12 @@ int setGpu(const QString &device, const QString &command)
     }
 
     if(!power_plug_pci.isDriverLoad()) {
-       qCritical() << "PCI reset fixer device driver not loaded";
+       qCritical() << "pwplug-pci driver not loaded";
        return 2;
     }
 
     if(!vfio_pci.isDriverLoad()) {
-       qCritical() << "PCI VFIO device driver not loaded";
+       qCritical() << "vfio-pci driver not loaded";
        return 3;
     }
 
