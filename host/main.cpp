@@ -14,14 +14,22 @@ int setGpu(const QString &device, const QString &command)
 
     serial.setVerbose(bVerbose);
 
-    PCI reset_pci("pcipowerplug");
+    serial.setPortName("ttyACM0");
+
+    auto status = serial.open();
+
+    if(!status) {
+        return serial.getLastError();
+    }
+
+    PCI power_plug_pci("pcipowerplug");
     PCI vfio_pci("vfio-pci");
 
     if(command != "1" && command != "0") {
         return 1;
     }
 
-    if(!reset_pci.isDriverLoad()) {
+    if(!power_plug_pci.isDriverLoad()) {
        qCritical() << "PCI reset fixer device driver not loaded";
        return 2;
     }
@@ -39,15 +47,21 @@ int setGpu(const QString &device, const QString &command)
     if(!vfio_pci.isBind(device
                         )) {
        qCritical() << "Device " << device << "must be binded on vfio-pci";
-       //return 4;
+       return 4;
     }
 
-    serial.setPortName("ttyACM0");
+    // Unbind device on vfio_pci. Preparing to reset
+    if(!vfio_pci.unbind(device)) {
+        return 5;
+    }
 
-    auto status = serial.open();
+    // Bind device on pci-power-plug. Preparing to reset
+    if(!power_plug_pci.bind(device)) {
+        return 5;
+    }
 
-    if(!status) {
-        return serial.getLastError();
+    if(!power_plug_pci.isBind(device)) {
+        return 6;
     }
 
     if(!serial.setGpuPower(command == "1")) {
@@ -92,13 +106,12 @@ int main(int argc, char *argv[])
    auto device = parser.value(deviceOption);
 
    if(bVerbose) qInfo() << "Pcie reset fixer";
-   if(bVerbose) qInfo() << "Device: " << device;
 
    if(args.size() >= 1) {
       return setGpu(device, args.at(0));
    }
    else {
-      qWarning() << "Incorrect parameter";
+      qCritical() << "Incorrect parameter";
    }
 
    return 0;
