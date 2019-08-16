@@ -19,6 +19,11 @@
 #define finit_module(fd, param_values, flags)        syscall(__NR_finit_module, fd, param_values, flags)
 #define delete_module(name, flags)                   syscall(__NR_delete_module, name, flags)
 
+PCI::PCI(const QString &name)
+{
+    m_DriverName = name;
+}
+
 bool PCI::loadDriver()
 {
     return false;
@@ -27,6 +32,13 @@ bool PCI::loadDriver()
 bool PCI::unloadDriver()
 {
     return true;
+}
+
+bool PCI::isBind(const QString &device)
+{
+    const QFileInfo dir(SYSDRIVER + m_DriverName + "/" + device);
+
+    return dir.exists();
 }
 
 bool PCI::isDriverLoad()

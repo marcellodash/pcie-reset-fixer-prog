@@ -137,7 +137,7 @@ static void remove(struct pci_dev *dev)
    
    if(rc)
    {
-      printk(KERN_INFO "set PCI_D0 error\n");
+      pr_err("set PCI_D0 error\n");
    }
 
 
@@ -198,7 +198,7 @@ static void __init pci_fill_ids(void)
 	}
 }
 
-static int __init pci_skel_init(void)
+static int __init pci_reset_fixer_init(void)
 {
    int status = 0;
    pr_info("########################## PCIe skel init #######################\n");
@@ -207,7 +207,7 @@ static int __init pci_skel_init(void)
    return status;
 }
 
-static void __exit pci_skel_exit(void)
+static void __exit pci_reset_fixer_exit(void)
 {
    pr_info("PCIe skel exit\n");
    pr_info("################################################################\n");
@@ -215,9 +215,8 @@ static void __exit pci_skel_exit(void)
 }
 
 
-
 MODULE_LICENSE("GPL");
 
-module_init(pci_skel_init);
-module_exit(pci_skel_exit);
+module_init(pci_reset_fixer_init);
+module_exit(pci_reset_fixer_exit);
 

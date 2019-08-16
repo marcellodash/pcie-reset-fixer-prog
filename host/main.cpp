@@ -3,20 +3,30 @@
 
 #include <QCoreApplication>
 #include <QTimer>
+#include <QCommandLineParser>
 
 #include <stdio.h>
 
-int setGpu(bool gpuPower)
+int setGpu(int id, bool gpuPower)
 {
     SerialUsb serial;
-    PCI pci;
+    PCI reset_pci("pcipowerplug");
+    PCI vfio_pci("vfio-pci");
 
-    pci.setDriverName("pcipowerplug");
-
-    if(!pci.isDriverLoad())
+    if(!reset_pci.isDriverLoad())
     {
-       printf("Driver not loaded");
+       printf("PCI reset fixer device driver not loaded\n");
        return -2;
+    }
+
+    if(!vfio_pci.isDriverLoad())
+    {
+       printf("PCI VFIO device driver not loaded\n");
+       //return -3;
+    }
+
+    if(reset_pci.isBind("0000:00:1f.3")) {
+        //return -4;
     }
 
     serial.setPortName("ttyACM0");
@@ -43,22 +53,17 @@ int main(int argc, char *argv[])
 {
    QCoreApplication app(argc, argv);
 
-   if(argc < 2)
-   {
-       return -1;
-   }
+   QCommandLineParser parser;
+       parser.setApplicationDescription("pcie reset fixer");
+       parser.addHelpOption();
+       parser.addVersionOption();
 
-   if(argv[1][1] != 0)
-   {
-       return -1;
-   }
+   QCommandLineOption showProgressOption("c", QCoreApplication::translate("main", "verbose"));
+   parser.addOption(showProgressOption);
 
-   if(!(argv[1][0] == '0' ||
-        argv[1][0] == '1'))
-   {
-      return -1;
-   }
+   parser.process(app);
 
-   return setGpu(argv[1][0] == '1');
+   const QStringList args = parser.positionalArguments();
+
+   return setGpu(0, args.at(0) == "1");
 }
-
