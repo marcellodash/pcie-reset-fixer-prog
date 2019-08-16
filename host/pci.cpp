@@ -14,6 +14,7 @@
 #include <QFileInfo>
 
 #define SYSDRIVER "/sys/bus/pci/drivers/"
+#define SYSDEVICE "/sys/bus/pci/devices/"
 
 #define init_module(module_image, len, param_values) syscall(__NR_init_module, module_image, len, param_values)
 #define finit_module(fd, param_values, flags)        syscall(__NR_finit_module, fd, param_values, flags)
@@ -50,7 +51,9 @@ bool PCI::isDriverLoad()
 
 bool PCI::isDeviceExists(const QString &device)
 {
-    return true;
+    const QFileInfo dir(SYSDEVICE + device);
+
+    return dir.exists();
 }
 
 bool PCI::bind(const QString &device)

@@ -32,14 +32,14 @@ int setGpu(const QString &device, const QString &command)
     }
 
     if(!vfio_pci.isDeviceExists(device)) {
-        qCritical() << "Device " + device + "don't exist";
+        qCritical() << "Device " + device + " don't exist";
         return 4;
     }
 
     if(!vfio_pci.isBind(device
                         )) {
        qCritical() << "Device " << device << "must be binded on vfio-pci";
-       return 4;
+       //return 4;
     }
 
     serial.setPortName("ttyACM0");
