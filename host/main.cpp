@@ -59,10 +59,6 @@ int setGpu(const QString &device, const QString &command)
         return 5;
     }
 
-    if(!power_plug_pci.isBind(device)) {
-        return 6;
-    }
-
     if(!serial.setGpuPower(command == "1")) {
         return serial.getLastError();
     }

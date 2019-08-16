@@ -67,10 +67,10 @@ bool PCI::bind(const QString &device)
 
     if(file.write(device.toUtf8()) < 0)
     {
-        return false;
+        //return false;
     }
 
-    return true;
+    return isBind(device);
 }
 
 bool PCI::unbind(const QString &device)
