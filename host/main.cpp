@@ -8,7 +8,7 @@
 
 static bool bVerbose = false;
 
-int setGpu(int id, const QString &command)
+int setGpu(const QString &device, const QString &command)
 {
     SerialUsb serial;
 
@@ -33,7 +33,7 @@ int setGpu(int id, const QString &command)
        return 3;
     }
 
-    if(reset_pci.isBind("0000:00:1f.3")) {
+    if(reset_pci.isBind(device)) {
         if(bVerbose) qInfo() << "Device binded for device";
     }
 
@@ -84,11 +84,13 @@ int main(int argc, char *argv[])
 
    bVerbose = parser.isSet(verboseOption);
 
+   auto device = parser.value(deviceOption);
+
    if(bVerbose) qInfo() << "Pcie reset fixer";
-   if(bVerbose) qInfo() << "Device: " << parser.value(deviceOption);
+   if(bVerbose) qInfo() << "Device: " << device;
 
    if(args.size() >= 1) {
-      return setGpu(0, args.at(0));
+      return setGpu(device, args.at(0));
    }
    else {
       qWarning() << "Incorrect parameter";

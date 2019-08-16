@@ -32,7 +32,7 @@ void SerialUsb::close()
 bool SerialUsb::flush()
 {
     if(m_Serial.waitForReadyRead(0)) {
-        QByteArray responseData = m_Serial.readAll();
+        m_Serial.readAll();
     }
 
     return true;
