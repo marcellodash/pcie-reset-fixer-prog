@@ -6,29 +6,35 @@
 #include <QCommandLineParser>
 #include<QDebug>
 
+static bool bVerbose = false;
 
-bool bVerbose = false;
-
-int setGpu(int id, bool gpuPower)
+int setGpu(int id, const QString &command)
 {
     SerialUsb serial;
+
+    serial.setVerbose(bVerbose);
+
     PCI reset_pci("pcipowerplug");
     PCI vfio_pci("vfio-pci");
+
+    if(command != "1" && command != "0") {
+        return 1;
+    }
 
     if(!reset_pci.isDriverLoad())
     {
        if(bVerbose) qCritical() << "PCI reset fixer device driver not loaded";
-       return -2;
+       return 2;
     }
 
     if(!vfio_pci.isDriverLoad())
     {
        if(bVerbose) qCritical() << "PCI VFIO device driver not loaded\n";
-       //return -3;
+       return 3;
     }
 
     if(reset_pci.isBind("0000:00:1f.3")) {
-        //return -4;
+        if(bVerbose) qInfo() << "Device binded for device";
     }
 
     serial.setPortName("ttyACM0");
@@ -39,11 +45,11 @@ int setGpu(int id, bool gpuPower)
         return serial.getLastError();
     }
 
-    if(!serial.setGpuPower(gpuPower)) {
+    if(!serial.setGpuPower(command == "1")) {
         return serial.getLastError();
     }
 
-    if(gpuPower) {
+    if(command == "1") {
         if(bVerbose) qInfo() << "GPU power on";
     }
     else {
@@ -79,14 +85,14 @@ int main(int argc, char *argv[])
    bVerbose = parser.isSet(verboseOption);
 
    if(bVerbose) qInfo() << "Pcie reset fixer";
-
+   if(bVerbose) qInfo() << "Device: " << parser.value(deviceOption);
 
    if(args.size() >= 1) {
-      return setGpu(0, args.at(0) == "1");
+      return setGpu(0, args.at(0));
    }
    else {
       qWarning() << "Incorrect parameter";
    }
 
-   return -1;
+   return 0;
 }

@@ -1,10 +1,10 @@
 #include "serial.h"
 
 #include <QSerialPortInfo>
-
+#include <QDebug>
 #define MAGIC "mc"
 
-#define BASE_ERROR (-1000)
+#define BASE_ERROR (20)
 
 SerialUsb::SerialUsb()
 {
@@ -16,15 +16,26 @@ bool SerialUsb::open()
     m_Serial.close();
     m_Serial.setPortName(m_portName);
     if(!m_Serial.open(QIODevice::ReadWrite)) {
-        m_LastError = BASE_ERROR - 2;
+        m_LastError = BASE_ERROR + 2;
         return false;
     }
+
+    flush();
     return true;
 }
 
 void SerialUsb::close()
 {
     m_Serial.close();
+}
+
+bool SerialUsb::flush()
+{
+    if(m_Serial.waitForReadyRead(0)) {
+        QByteArray responseData = m_Serial.readAll();
+    }
+
+    return true;
 }
 
 bool SerialUsb::sendCommand(char cmd)
@@ -39,25 +50,38 @@ bool SerialUsb::sendCommand(char cmd)
 
     if(m_Serial.waitForBytesWritten(m_Timeout)) {
         // Read response
-        if(m_Serial.waitForReadyRead(m_Timeout)) {
-            QByteArray responseData = m_Serial.readAll();
 
-            if(responseData.size() < 7) {
-                m_LastError = BASE_ERROR - 3;
-                return false;
+        QByteArray responseData;
+
+        int retry = 100;
+        do
+        {
+            if(m_Serial.waitForReadyRead(m_Timeout)) {
+                responseData = m_Serial.peek(7);
             }
 
-            if(responseData[0] != '*'  ||
-               responseData[1] != cmd  ||
-               responseData[2] != '\r' ||
-               responseData[3] != '\n'  ) {
-                m_LastError = BASE_ERROR - 4;
-                return false;
+            if(retry-- == 0) {
+                break;
             }
+        }
+        while(responseData.size() < 7);
+
+        if(responseData.size() < 7) {
+            m_LastError = BASE_ERROR + 3;
+            if(m_Verbose) qInfo() << "Size error: " << responseData.size();
+            return false;
+        }
+
+        if(responseData[0] != '*'  ||
+           responseData[1] != cmd  ||
+           responseData[2] != '\r' ||
+           responseData[3] != '\n'  ) {
+            m_LastError = BASE_ERROR + 4;
+            return false;
         }
     }
     else {
-        m_LastError = BASE_ERROR -2;
+        m_LastError = BASE_ERROR + 2;
         return false;
     }
 
