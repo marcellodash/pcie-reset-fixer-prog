@@ -22,11 +22,12 @@ void txled(bool value);
  */
 void loop()
 {
+  auto sw = getSwitch();
+
   handleSerial();
  
   if(0)
   {
-     auto sw = getSwitch();
      setGpu(sw); 
      txled(sw);
   }
@@ -40,7 +41,9 @@ void setup()
    pinMode(RXLED, OUTPUT);  // Set RX LED as an output
    // TX LED is set as an output behind the scenes
 
+   // Power on GPU
    setGpu(true);
+
    rxled(false);
    txled(false);
 
@@ -52,17 +55,17 @@ void cmdExec(int cmd)
 {
    switch(cmd)
    {
-      case 0:
+      case 0: // Power off GPU
          setGpu(false);
 	 Serial.println("-");
          break;
      
-      case 1:
+      case 1: // Power on GPU
          setGpu(true);
 	 Serial.println("+");
          break;
 
-      case 2:
+      case 2: // Get GPU power status
          Serial.println(getGpu() ? '+' : '-');
          break;
 
@@ -76,6 +79,10 @@ void cmdExec(int cmd)
       
       case 5:
          Serial.println(analogRead(2), DEC);
+         break;
+
+      case 9: // Ping
+         Serial.println("0"); // Pong
          break;
     }
 }

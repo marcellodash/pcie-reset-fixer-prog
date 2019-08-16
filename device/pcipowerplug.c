@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/init.h>
+
 /*
 static unsigned char skel_get_revision(struct pci_dev *dev)
 {
@@ -12,6 +13,7 @@ static unsigned char skel_get_revision(struct pci_dev *dev)
    return revision;
 }
 */
+
 int setD3Hot(struct pci_dev *dev)
 {
    int rc = 0;
@@ -81,19 +83,32 @@ static void showPowerState(struct pci_dev *dev)
 
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
-
+   int rc = 0;
    pr_info("pciepowerplug probe\n");
 
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
+   // Do probing type stuff here.  
+   // Like calling request_region();
+   rc = pci_enable_device(dev);
+
+   if(rc)
+   {
+      pr_err("Error enabling device\n");	  
+      return -ENODEV;
+   }
+
    pr_info("**** Current power state ****\n");
    showPowerState(dev);
 
-   /* Do probing type stuff here.  
-    * Like calling request_region();
-    */
-   pci_enable_device(dev);
+   pr_info("Reset device\n");
+   rc = pci_try_reset_function(dev);
+
+   if(rc)
+   {
+      pr_err("Failed resetting device\n");
+   }
 
    setD3Hot(dev);
 
@@ -124,6 +139,7 @@ static void remove(struct pci_dev *dev)
    {
       printk(KERN_INFO "set PCI_D0 error\n");
    }
+
 
    pr_info("New state\n");
    showPowerState(dev);
@@ -181,7 +197,6 @@ static void __init pci_fill_ids(void)
 				class, class_mask);
 	}
 }
-
 
 static int __init pci_skel_init(void)
 {
