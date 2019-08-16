@@ -44,8 +44,7 @@ int setGpu(const QString &device, const QString &command)
         return 4;
     }
 
-    if(!vfio_pci.isBind(device
-                        )) {
+    if(!vfio_pci.isBind(device)) {
        qCritical() << "Device " << device << "must be binded on vfio-pci";
        return 4;
     }
