@@ -4,8 +4,10 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include <QCommandLineParser>
+#include<QDebug>
 
-#include <stdio.h>
+
+bool bVerbose = false;
 
 int setGpu(int id, bool gpuPower)
 {
@@ -15,13 +17,13 @@ int setGpu(int id, bool gpuPower)
 
     if(!reset_pci.isDriverLoad())
     {
-       printf("PCI reset fixer device driver not loaded\n");
+       if(bVerbose) qCritical() << "PCI reset fixer device driver not loaded";
        return -2;
     }
 
     if(!vfio_pci.isDriverLoad())
     {
-       printf("PCI VFIO device driver not loaded\n");
+       if(bVerbose) qCritical() << "PCI VFIO device driver not loaded\n";
        //return -3;
     }
 
@@ -42,10 +44,10 @@ int setGpu(int id, bool gpuPower)
     }
 
     if(gpuPower) {
-        printf("GPU power on\n");
+        if(bVerbose) qInfo() << "GPU power on";
     }
     else {
-        printf("GPU power off\n");
+        if(bVerbose) qInfo() << "GPU power off";
     }
 }
 
@@ -58,12 +60,24 @@ int main(int argc, char *argv[])
        parser.addHelpOption();
        parser.addVersionOption();
 
-   QCommandLineOption showProgressOption("c", QCoreApplication::translate("main", "verbose"));
-   parser.addOption(showProgressOption);
+   QCommandLineOption verboseOption("c", QCoreApplication::translate("main", "verbose"));
+   parser.addOption(verboseOption);
 
    parser.process(app);
 
    const QStringList args = parser.positionalArguments();
 
-   return setGpu(0, args.at(0) == "1");
+   bVerbose = parser.isSet(verboseOption);
+
+   if(bVerbose) qInfo() << "Pcie reset fixer";
+
+
+   if(args.size() >= 1) {
+      return setGpu(0, args.at(0) == "1");
+   }
+   else {
+      qWarning() << "Incorrect parameter";
+   }
+
+   return -1;
 }
