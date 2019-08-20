@@ -7,17 +7,6 @@
 #define DRIVER_AUTHOR   "Rogerio Matte Machado  <rogermm@gmail.com>"
 #define DRIVER_DESC     "GPU cold reset"
 
-/*
-static unsigned char skel_get_revision(struct pci_dev *dev)
-{
-   u8 revision;
-
-   pci_read_config_byte(dev, PCI_REVISION_ID, &revision);
-
-   return revision;
-}
-*/
-
 int setD3Hot(struct pci_dev *dev)
 {
    int rc = 0;
@@ -29,7 +18,7 @@ int setD3Hot(struct pci_dev *dev)
     * We're not ready to enable the device yet, but we do want to
     * be able to get to D3.  Therefore first do a D0 transition
     * before going to D3.
-    */
+   */
    rc = pci_set_power_state(dev, PCI_D0);
 
    if(rc)
@@ -37,59 +26,61 @@ int setD3Hot(struct pci_dev *dev)
       pr_info("set PCI_D0 error\n");
    }
 
-   /*rc = pci_set_power_state(dev, PCI_D3hot);
+   rc = pci_set_power_state(dev, PCI_D3hot);
 
    if(rc)
    {
       pr_info("set PCI_D3hot error\n");
-   }*/
+   }
 
-   rc = pci_set_power_state(dev, PCI_D3cold);
+   /*rc = pci_set_power_state(dev, PCI_D3cold);
 
    if(rc)
    {
       pr_info("set PCI_D3cold error\n");
-   }
+   }*/
 
    return rc;
 }
 
-static void showPowerState(struct pci_dev *dev)
+static void showPowerState(const char *desc, struct pci_dev *dev)
 { 
+   pr_info("**** %s power state:", desc);
    switch(dev->current_state)
    {
       case PCI_D0:
-         pr_info("PCI_D0\n");
+         pr_info("PCI_D0");
          break;	   
       case PCI_D1:
-         pr_info("PCI_D1\n");
+         pr_info("PCI_D1");
          break;	   
       case PCI_D2:
-         pr_info("PCI_D2\n");
+         pr_info("PCI_D2");
          break;	   
       case PCI_D3hot:
-         pr_info("PCI_D3hot\n");
+         pr_info("PCI_D3hot");
          break;	   
       case PCI_D3cold:
-         pr_info("PCI_D3cold\n");
+         pr_info("PCI_D3cold");
          break;	   
       case PCI_UNKNOWN:
-         pr_info("PCI_UNKNOWN\n");
+         pr_info("PCI_UNKNOWN");
          break;	   
       case PCI_POWER_ERROR:
-         pr_info("PCI_POWER_ERROR\n");
+         pr_info("PCI_POWER_ERROR");
          break;	  
       default:
-         pr_err("Invalid PCI power state\n");
+         pr_err("Invalid PCI power state");
 	 break;
    }
+   pr_info("*****\n");
 }
 
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
    int rc = 0;
-   pr_info("pciepowerplug probe\n");
-   //pci_user_write_config_byte(dev, 0, 0);
+   pr_info("pwplug probe\n");
+   
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
@@ -103,24 +94,21 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
       return -ENODEV;
    }
 
-   pr_info("**** Current power state ****\n");
-   showPowerState(dev);
+   showPowerState("Current", dev);
 
    pr_info("Reset device\n");
    rc = pci_try_reset_function(dev);
 
-   if(rc)
+   if(rc == -EAGAIN)
    {
+      pci_disable_device(dev);	   
       pr_err("Failed resetting device\n");
+      return rc;
    }
 
    setD3Hot(dev);
 
-   pr_info("**** New power state ****\n");
-   showPowerState(dev);
-
-   //if (skel_get_revision(dev) == 0x42)
-   //  return -ENODEV;
+   showPowerState("New", dev);
 
    return 0;
 }
@@ -132,10 +120,9 @@ static void remove(struct pci_dev *dev)
    /* clean up any allocated resources and stuff here.
     * like call release_region();
     */
-   pr_info("pciepowerplug remove\n");
+   pr_info("pwplug remove\n");
 
-   pr_info("Current state\n");
-   showPowerState(dev);
+   showPowerState("Current", dev);
 
    rc = pci_set_power_state(dev, PCI_D0);
    
@@ -145,8 +132,7 @@ static void remove(struct pci_dev *dev)
    }
 
 
-   pr_info("New state\n");
-   showPowerState(dev);
+   showPowerState("New", dev);
 }
 
 
@@ -202,18 +188,18 @@ static void __init pci_fill_ids(void)
 	}
 }
 
-static int __init pci_reset_fixer_init(void)
+static int __init pwplug_init(void)
 {
    int status = 0;
-   pr_info("########################## PCIe power reset init #######################\n");
+   pr_info("##########################  pwplug device driver  #######################\n");
    status = pci_register_driver(&pci_driver);
    pci_fill_ids();
    return status;
 }
 
-static void __exit pci_reset_fixer_exit(void)
+static void __exit pwplug_exit(void)
 {
-   pr_info("#######################################################################\n");
+   pr_info("########################################################################\n");
    pci_unregister_driver(&pci_driver);
 }
 
@@ -222,6 +208,6 @@ MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
 
-module_init(pci_reset_fixer_init);
-module_exit(pci_reset_fixer_exit);
+module_init(pwplug_init);
+module_exit(pwplug_exit);
 
