@@ -23,7 +23,7 @@ int setGpu(const QString &device, const QString &command)
         return serial.getLastError();
     }
 
-    PCI power_plug_pci("pwplug-pci");
+    PCI power_plug_pci("pwplug");
     PCI vfio_pci("vfio-pci");
 
     if(command != "1" && command != "0") {

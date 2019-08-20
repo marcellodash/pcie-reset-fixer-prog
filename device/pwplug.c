@@ -84,8 +84,6 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
-   // Do probing type stuff here.  
-   // Like calling request_region();
    rc = pci_enable_device(dev);
 
    if(rc)
@@ -117,9 +115,6 @@ static void remove(struct pci_dev *dev)
 {
    int rc = 0;
 
-   /* clean up any allocated resources and stuff here.
-    * like call release_region();
-    */
    pr_info("pwplug remove\n");
 
    showPowerState("Current", dev);
@@ -137,63 +132,18 @@ static void remove(struct pci_dev *dev)
 
 
 static struct pci_driver pci_driver = {
-	.name = "pwplug-pci",
+	.name = "pwplug",
 	.id_table = NULL, // Only dynamic ids
 	.probe = probe,
 	.remove = remove,
 	//.err_handler TODO
 };
 
-static char ids[1024] __initdata;
-
-static void __init pci_fill_ids(void)
-{
-	char *p, *id;
-	int rc;
-	//strcpy(ids, "8086:a348");
-
-	/* no ids passed actually */
-	if (ids[0] == '\0')
-		return;
-
-	/* add ids specified in the module parameter */
-	p = ids;
-	while ((id = strsep(&p, ","))) {
-		unsigned int vendor, device, subvendor = PCI_ANY_ID,
-			subdevice = PCI_ANY_ID, class = 0, class_mask = 0;
-		int fields;
-
-		if (!strlen(id))
-			continue;
-
-		fields = sscanf(id, "%x:%x:%x:%x:%x:%x",
-				&vendor, &device, &subvendor, &subdevice,
-				&class, &class_mask);
-
-		if (fields < 2) {
-			pr_warn("invalid id string \"%s\"\n", id);
-			continue;
-		}
-
-		rc = pci_add_dynid(&pci_driver, vendor, device,
-				   subvendor, subdevice, class, class_mask, 0);
-		if (rc)
-			pr_warn("failed to add dynamic id [%04x:%04x[%04x:%04x]] class %#08x/%08x (%d)\n",
-				vendor, device, subvendor, subdevice,
-				class, class_mask, rc);
-		else
-			pr_info("add [%04x:%04x[%04x:%04x]] class %#08x/%08x\n",
-				vendor, device, subvendor, subdevice,
-				class, class_mask);
-	}
-}
-
 static int __init pwplug_init(void)
 {
    int status = 0;
    pr_info("##########################  pwplug device driver  #######################\n");
    status = pci_register_driver(&pci_driver);
-   pci_fill_ids();
    return status;
 }
 
