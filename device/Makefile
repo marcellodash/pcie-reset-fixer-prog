@@ -14,7 +14,7 @@ ifneq ($(KERNELRELEASE),)
 # call from kernel build system
 
 obj-m	+= pwplug.o
-pwplug-objs := vfio_pci_config.o vfio_pci_intrs.o vfio_pci_intrs.o vfio_pci_rdwr.o
+#pwplug-objs := vfio_pci_config.o vfio_pci_intrs.o vfio_pci_intrs.o vfio_pci_rdwr.o
 
 else
 

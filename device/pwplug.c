@@ -213,7 +213,7 @@ static int __init pci_reset_fixer_init(void)
 
 static void __exit pci_reset_fixer_exit(void)
 {
-   pr_info("################################################################\n");
+   pr_info("#######################################################################\n");
    pci_unregister_driver(&pci_driver);
 }
 
