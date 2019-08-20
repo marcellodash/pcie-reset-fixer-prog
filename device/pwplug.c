@@ -3,6 +3,10 @@
 #include <linux/pci.h>
 #include <linux/init.h>
 
+#define DRIVER_VERSION  "0.1"
+#define DRIVER_AUTHOR   "Rogerio Matte Machado  <rogermm@gmail.com>"
+#define DRIVER_DESC     "GPU cold reset"
+
 /*
 static unsigned char skel_get_revision(struct pci_dev *dev)
 {
@@ -85,7 +89,7 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
    int rc = 0;
    pr_info("pciepowerplug probe\n");
-
+   //pci_user_write_config_byte(dev, 0, 0);
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
 
@@ -213,8 +217,10 @@ static void __exit pci_reset_fixer_exit(void)
    pci_unregister_driver(&pci_driver);
 }
 
-
-MODULE_LICENSE("GPL");
+MODULE_VERSION(DRIVER_VERSION);
+MODULE_LICENSE("GPL v2");
+MODULE_AUTHOR(DRIVER_AUTHOR);
+MODULE_DESCRIPTION(DRIVER_DESC);
 
 module_init(pci_reset_fixer_init);
 module_exit(pci_reset_fixer_exit);

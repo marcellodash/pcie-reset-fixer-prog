@@ -1629,7 +1629,7 @@ out_driver:
 	vfio_pci_uninit_perm_bits();
 	return ret;
 }
-
+#ifdef sds
 module_init(vfio_pci_init);
 module_exit(vfio_pci_cleanup);
 
@@ -1637,3 +1637,5 @@ MODULE_VERSION(DRIVER_VERSION);
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);
+#endif
+
