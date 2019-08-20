@@ -19,6 +19,7 @@ int setGpu(const QString &device, const QString &command)
     auto status = serial.open();
 
     if(!status) {
+        qCritical() << "Cannot open serial";
         return serial.getLastError();
     }
 
@@ -29,34 +30,34 @@ int setGpu(const QString &device, const QString &command)
         return 1;
     }
 
+    if(!vfio_pci.isDeviceExists(device)) {
+        qCritical() << "Device " + device + " don't exist";
+        return 2;
+    }
+
     if(!power_plug_pci.isDriverLoad()) {
        qCritical() << "pwplug-pci driver not loaded";
-       return 2;
+       return 3;
     }
 
     if(!vfio_pci.isDriverLoad()) {
        qCritical() << "vfio-pci driver not loaded";
-       return 3;
-    }
-
-    if(!vfio_pci.isDeviceExists(device)) {
-        qCritical() << "Device " + device + " don't exist";
-        return 4;
+       return 4;
     }
 
     if(!vfio_pci.isBind(device)) {
        qCritical() << "Device " << device << "must be binded on vfio-pci";
-       return 4;
+       return 5;
     }
 
     // Unbind device on vfio_pci. Preparing to reset
     if(!vfio_pci.unbind(device)) {
-        return 5;
+        return 6;
     }
 
     // Bind device on pci-power-plug. Preparing to reset
     if(!power_plug_pci.bind(device)) {
-        return 5;
+        return 7;
     }
 
     if(!serial.setGpuPower(command == "1")) {
