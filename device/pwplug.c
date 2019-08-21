@@ -4,7 +4,7 @@
 #include <linux/init.h>
 
 #define DRIVER_VERSION  "0.1"
-#define DRIVER_AUTHOR   "Rogerio Matte Machado  <rogermm@gmail.com>"
+#define DRIVER_AUTHOR   "Rogerio Matte Machado <rogermm@gmail.com>"
 #define DRIVER_DESC     "GPU cold reset"
 
 int setD3Hot(struct pci_dev *dev)
@@ -86,11 +86,31 @@ static void pci_disable(struct pci_dev *dev)
    // Disable device
    pci_disable_device(dev);
 
-   rc = pci_set_power_state(dev, PCI_D3hot);
+   pr_info("Reseting slot\n");
+   rc = pci_probe_reset_slot(dev->slot);
+
+   if(rc) 
+   {
+      pr_info("Failed reseting slot. reseting bus\n");
+      rc = pci_probe_reset_bus(dev->bus); 
+      if(rc)
+      {
+         pr_err("Failed reseting bus\n");	      
+      }
+   }
+
+   /*rc = pci_set_power_state(dev, PCI_D3hot);
 
    if(rc)
    {
-      pr_err("set PCI_D3hot error");
+      pr_err("set PCI_D3hot error\n");
+   }*/
+
+   rc = pci_set_power_state(dev, PCI_D3cold);
+
+   if(rc)
+   {
+      pr_info("set PCI_D3cold error\n");
    }
 }
 
