@@ -45,36 +45,55 @@ int setD3Hot(struct pci_dev *dev)
 
 static void showPowerState(const char *desc, struct pci_dev *dev)
 { 
-   pr_info("**** %s power state:", desc);
+   char state[30];
    switch(dev->current_state)
    {
       case PCI_D0:
-         pr_info("PCI_D0");
+         strcpy(state, "PCI_D0");
          break;	   
       case PCI_D1:
-         pr_info("PCI_D1");
+         strcpy(state, "PCI_D1");
          break;	   
       case PCI_D2:
-         pr_info("PCI_D2");
+         strcpy(state, "PCI_D2");
          break;	   
       case PCI_D3hot:
-         pr_info("PCI_D3hot");
+         strcpy(state, "PCI_D3hot");
          break;	   
       case PCI_D3cold:
-         pr_info("PCI_D3cold");
+         strcpy(state, "PCI_D3cold");
          break;	   
       case PCI_UNKNOWN:
-         pr_info("PCI_UNKNOWN");
+         strcpy(state, "PCI_UNKNOWN");
          break;	   
       case PCI_POWER_ERROR:
-         pr_info("PCI_POWER_ERROR");
+         strcpy(state, "PCI_POWER_ERROR");
          break;	  
       default:
-         pr_err("Invalid PCI power state");
+         strcpy(state, "Invalid PCI power state");
 	 break;
    }
-   pr_info("*****\n");
+   pr_info("pwplug %s power state: %s\n", desc, state);
 }
+
+static void pci_disable(struct pci_dev *dev)
+{
+   int rc = 0;
+
+   // Stop the device from further DMA */
+   pci_clear_master(dev);
+
+   // Disable device
+   pci_disable_device(dev);
+
+   rc = pci_set_power_state(dev, PCI_D3hot);
+
+   if(rc)
+   {
+      pr_err("set PCI_D3hot error");
+   }
+}
+
 
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
@@ -92,22 +111,12 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
       return -ENODEV;
    }
 
-   showPowerState("Current", dev);
+   showPowerState("current", dev);
 
-   pr_info("Reset device\n");
-   rc = pci_try_reset_function(dev);
+   pci_disable(dev);
 
-   if(rc == -EAGAIN)
-   {
-      pci_disable_device(dev);	   
-      pr_err("Failed resetting device\n");
-      return rc;
-   }
-
-   setD3Hot(dev);
-
-   showPowerState("New", dev);
-
+   showPowerState("new", dev);
+   
    return 0;
 }
 
@@ -117,7 +126,7 @@ static void remove(struct pci_dev *dev)
 
    pr_info("pwplug remove\n");
 
-   showPowerState("Current", dev);
+   showPowerState("current", dev);
 
    rc = pci_set_power_state(dev, PCI_D0);
    
@@ -127,7 +136,7 @@ static void remove(struct pci_dev *dev)
    }
 
 
-   showPowerState("New", dev);
+   showPowerState("new", dev);
 }
 
 
