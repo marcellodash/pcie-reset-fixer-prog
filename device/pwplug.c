@@ -169,6 +169,13 @@ static void remove(struct pci_dev *dev)
       pci_err(dev, "set PCI_D0 error\n");
    }
 
+   rc = pci_enable_device(dev);
+
+   if(rc)
+   {
+      pci_err(dev, "error enabling device\n");
+   }
+
    showPowerState("new", dev);
 }
 
