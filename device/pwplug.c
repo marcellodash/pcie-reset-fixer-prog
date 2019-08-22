@@ -161,6 +161,8 @@ static void remove(struct pci_dev *dev)
    pci_info(dev, "remove\n");
 
    showPowerState("current", dev);
+   
+   return;
 
    rc = pci_set_power_state(dev, PCI_D0);
    

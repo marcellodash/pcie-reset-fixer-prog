@@ -75,7 +75,6 @@ int setGpu(const QString &device, const QString &command)
     return 0;
 }
 
-
 int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
 {
     PCI pci;
@@ -156,7 +155,6 @@ int main(int argc, char *argv[])
 
    QCommandLineOption resetOption("r", QCoreApplication::translate("main", "reset"));
    parser.addOption(resetOption);
-
 
    QCommandLineOption deviceOption(QStringList() << "s" << "device",
            "PCIe device",
