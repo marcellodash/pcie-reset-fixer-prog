@@ -23,8 +23,8 @@ int setGpu(const QString &device, const QString &command)
         return serial.getLastError();
     }
 
-    PCI power_plug_pci("pwplug");
-    PCI vfio_pci("vfio-pci");
+    PCIDRIVER power_plug_pci("pwplug");
+    PCIDRIVER vfio_pci("vfio-pci");
 
     if(command != "1" && command != "0") {
         return 1;
@@ -74,6 +74,25 @@ int setGpu(const QString &device, const QString &command)
     return 0;
 }
 
+
+int reset_GPU(const QString &device)
+{
+    PCI pci;
+    PCIDRIVER power_plug_pci("pwplug");
+    PCIDRIVER vfio_pci("vfio-pci");
+
+    qInfo() << "Remove device: " << device;
+    pci.remove(device);
+
+    qInfo() << "Rescan";
+    pci.rescan();
+
+
+    //power_plug_pci.remove("");
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
    QCoreApplication app(argc, argv);
@@ -104,7 +123,8 @@ int main(int argc, char *argv[])
    if(bVerbose) qInfo() << "Pcie reset fixer";
 
    if(args.size() >= 1) {
-      return setGpu(device, args.at(0));
+      //return setGpu(device, args.at(0));
+      reset_GPU(device);
    }
    else {
       qCritical() << "Incorrect parameter";

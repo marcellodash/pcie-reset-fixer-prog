@@ -2,10 +2,13 @@
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/init.h>
+#include <linux/pci_hotplug.h>
 
 #define DRIVER_VERSION  "0.1"
 #define DRIVER_AUTHOR   "Rogerio Matte Machado <rogermm@gmail.com>"
 #define DRIVER_DESC     "GPU cold reset"
+
+static bool debug;
 
 int setD3Hot(struct pci_dev *dev)
 {
@@ -133,6 +136,17 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 
    showPowerState("current", dev);
 
+   if(dev->d3cold_allowed)
+   {
+      pr_info("D3cold allowed\n");	   
+   }
+   else
+   {
+      pr_info("D3cold not allowed\n");	   
+   }
+
+   pci_d3cold_enable(dev);
+
    pci_disable(dev);
 
    showPowerState("new", dev);
@@ -172,6 +186,12 @@ static int __init pwplug_init(void)
 {
    int status = 0;
    pr_info("##########################  pwplug device driver  #######################\n");
+
+   if(debug)
+   {
+
+   }
+
    status = pci_register_driver(&pci_driver);
    return status;
 }
@@ -182,6 +202,7 @@ static void __exit pwplug_exit(void)
    pci_unregister_driver(&pci_driver);
 }
 
+MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
 MODULE_VERSION(DRIVER_VERSION);
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR(DRIVER_AUTHOR);

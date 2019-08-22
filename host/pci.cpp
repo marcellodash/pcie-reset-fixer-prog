@@ -15,38 +15,68 @@
 
 #define SYSDRIVER "/sys/bus/pci/drivers/"
 #define SYSDEVICE "/sys/bus/pci/devices/"
+#define SYSRESCAN "/sys/bus/pci/rescan"
 
 #define init_module(module_image, len, param_values) syscall(__NR_init_module, module_image, len, param_values)
 #define finit_module(fd, param_values, flags)        syscall(__NR_finit_module, fd, param_values, flags)
 #define delete_module(name, flags)                   syscall(__NR_delete_module, name, flags)
 
-PCI::PCI(const QString &name)
+bool PCI::enable(const QString &device, bool value)
 {
-    m_DriverName = name;
-}
+    char v[2];
 
-bool PCI::loadDriver()
-{
-    return false;
-}
+    v[0] = value ? '1' : '0';
+    v[1] = 0;
 
-bool PCI::unloadDriver()
-{
+    QFile file(SYSDEVICE + device + "/enable");
+
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+    if(file.write(v, 2))
+    {
+        return false;
+    }
+
     return true;
 }
 
-bool PCI::isBind(const QString &device)
+bool PCI::remove(const QString &device)
 {
-    const QFileInfo dir(SYSDRIVER + m_DriverName + "/" + device);
+    char value1[] = "1";
+    QFile file(SYSDEVICE + device + "/remove");
 
-    return dir.exists();
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+    if(file.write(value1, sizeof(value1)))
+    {
+        return false;
+    }
+
+    return true;
 }
 
-bool PCI::isDriverLoad()
+bool PCI::rescan()
 {
-    const QFileInfo dir(SYSDRIVER + m_DriverName);
+    char value1[] = "1";
+    QFile file(SYSRESCAN);
 
-    return dir.exists();
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+    if(file.write(value1, sizeof(value1)))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool PCI::isDeviceExists(const QString &device)
@@ -56,7 +86,38 @@ bool PCI::isDeviceExists(const QString &device)
     return dir.exists();
 }
 
-bool PCI::bind(const QString &device)
+
+bool PCIDRIVER::isBind(const QString &device)
+{
+    const QFileInfo dir(SYSDRIVER + m_DriverName + "/" + device);
+
+    return dir.exists();
+}
+
+PCIDRIVER::PCIDRIVER(const QString &name)
+{
+    m_DriverName = name;
+}
+
+bool PCIDRIVER::loadDriver()
+{
+    return false;
+}
+
+bool PCIDRIVER::unloadDriver()
+{
+    return true;
+}
+
+bool PCIDRIVER::isDriverLoad()
+{
+    const QFileInfo dir(SYSDRIVER + m_DriverName);
+
+    return dir.exists();
+}
+
+
+bool PCIDRIVER::bind(const QString &device)
 {
     QFile file(SYSDRIVER + m_DriverName + "/bind");
 
@@ -73,7 +134,7 @@ bool PCI::bind(const QString &device)
     return isBind(device);
 }
 
-bool PCI::unbind(const QString &device)
+bool PCIDRIVER::unbind(const QString &device)
 {
     QFile file(SYSDRIVER + m_DriverName + "/unbind");
 
@@ -90,7 +151,8 @@ bool PCI::unbind(const QString &device)
     return true;
 }
 
-bool PCI::new_id(const QString &id)
+
+bool PCIDRIVER::new_id(const QString &id)
 {
     QFile file(SYSDRIVER + m_DriverName + "/new_id");
 
