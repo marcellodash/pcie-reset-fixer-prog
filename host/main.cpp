@@ -76,7 +76,7 @@ int setGpu(const QString &device, const QString &command)
 }
 
 
-int reset_GPU(const QString &device)
+int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
 {
     PCI pci;
     PCIDRIVER power_plug_pci("pwplug");
@@ -103,7 +103,7 @@ int reset_GPU(const QString &device)
     qInfo() << "Remove device:" << device;
     if(!pci.remove(device))
     {
-        // None
+        qInfo() << "Device already removed";
     }
 
     // Power off GPU
@@ -112,14 +112,14 @@ int reset_GPU(const QString &device)
         return -3;
     }
 
-    QThread::msleep(3000);
+    QThread::msleep(time1);
 
     // Power on GPU
     if(!serial.setGpuPower(false)) {
         qCritical() << "GPU power on failed";
     }
 
-    QThread::msleep(1000);
+    QThread::msleep(time2);
 
     qInfo() << "Rescan";
 
@@ -155,11 +155,16 @@ int main(int argc, char *argv[])
    parser.addOption(resetOption);
 
 
-   // An option with a value
    QCommandLineOption deviceOption(QStringList() << "s" << "device",
-           QCoreApplication::translate("main", "PCIe device"),
-           QCoreApplication::translate("main", "[[[[<domain>]:]<bus>]:][<slot>][.[<func>]]"));
+           "PCIe device",
+           "[[[[<domain>]:]<bus>]:][<slot>][.[<func>]]");
    parser.addOption(deviceOption);
+
+   QCommandLineOption delayOption1(QStringList() << "d" << "delay1",  "Delay 1", "miliseconds");
+   parser.addOption(delayOption1);
+
+   QCommandLineOption delayOption2(QStringList() << "y" << "delay2", "Delay 2", "miliseconds");
+   parser.addOption(delayOption2);
 
    parser.process(app);
 
@@ -171,18 +176,25 @@ int main(int argc, char *argv[])
 
    if(bVerbose) qInfo() << "Pcie reset fixer";
 
+   unsigned int delay1 = 4000, delay2 = 1000;
+
+   if(parser.isSet(delayOption1)) {
+      delay1 = parser.value(delayOption1).toUInt();
+   }
+
+   if(parser.isSet(delayOption2)) {
+      delay2 = parser.value(delayOption2).toUInt();
+   }
+
    if(parser.isSet(resetOption) && parser.isSet(deviceOption))
    {
-       return reset_GPU(device);
+       return reset_GPU(device, delay1, delay2);
    }
-   else
-   {
-      if(args.size() >= 1) {
-        return setGpu(device, args.at(0));
-      }
-      else {
-        qCritical() << "Incorrect parameter";
-      }
+   else if((args.size() >= 1)) {
+      return setGpu(device, args.at(0));
+   }
+   else {
+      qCritical() << "Incorrect parameter";
    }
    return 0;
 }
