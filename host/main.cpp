@@ -117,7 +117,7 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
     QThread::msleep(time1);
 
     // Power on GPU
-    if(!serial.setGpuPower(false)) {
+    if(!serial.setGpuPower(true)) {
         qCritical() << "GPU power on failed";
     }
 
