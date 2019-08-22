@@ -76,7 +76,7 @@ static void showPowerState(const char *desc, struct pci_dev *dev)
          strcpy(state, "Invalid PCI power state");
 	 break;
    }
-   pci_info(dev, "pwplug %s power state: %s\n", desc, state);
+   pci_info(dev, "%s power state: %s\n", desc, state);
 }
 
 static void pci_disable(struct pci_dev *dev)
@@ -158,7 +158,7 @@ static void remove(struct pci_dev *dev)
 {
    int rc = 0;
 
-   pci_info(dev, "pwplug remove\n");
+   pci_info(dev, "remove\n");
 
    showPowerState("current", dev);
 
