@@ -4,7 +4,8 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include <QCommandLineParser>
-#include<QDebug>
+#include <QDebug>
+#include <QThread>
 
 static bool bVerbose = false;
 
@@ -81,12 +82,49 @@ int reset_GPU(const QString &device)
     PCIDRIVER power_plug_pci("pwplug");
     PCIDRIVER vfio_pci("vfio-pci");
 
-    qInfo() << "Remove device: " << device;
-    pci.remove(device);
+    SerialUsb serial;
+
+    serial.setVerbose(bVerbose);
+
+    serial.setPortName("ttyACM0");
+
+    auto serialOpen = serial.open();
+
+    if(!serialOpen) {
+        qCritical() << "Cannot open serial";
+        //return -1;
+    }
+
+    qInfo() << "Remove device:" << device;
+    if(!pci.remove(device))
+    {
+        // None
+    }
+
+    if(!serialOpen) {
+        if(!serial.ping()) {
+            qCritical() << "Ping failed";
+            //return -2;
+        }
+
+        // Power off GPU
+        serial.setGpuPower(false);
+
+        QThread::msleep(3000);
+
+        // Power on GPU
+        serial.setGpuPower(false);
+
+        QThread::msleep(1000);
+    }
 
     qInfo() << "Rescan";
-    pci.rescan();
 
+    if(!pci.rescan())
+    {
+        qCritical() << "Rescan failed";
+        return -2;
+    }
 
     //power_plug_pci.remove("");
 
@@ -105,6 +143,9 @@ int main(int argc, char *argv[])
    QCommandLineOption verboseOption("c", QCoreApplication::translate("main", "verbose"));
    parser.addOption(verboseOption);
 
+   QCommandLineOption resetOption("r", QCoreApplication::translate("main", "reset"));
+   parser.addOption(resetOption);
+
 
    // An option with a value
    QCommandLineOption deviceOption(QStringList() << "s" << "device",
@@ -122,13 +163,18 @@ int main(int argc, char *argv[])
 
    if(bVerbose) qInfo() << "Pcie reset fixer";
 
-   if(args.size() >= 1) {
-      //return setGpu(device, args.at(0));
-      reset_GPU(device);
+   if(parser.isSet(resetOption) && parser.isSet(deviceOption))
+   {
+       return reset_GPU(device);
    }
-   else {
-      qCritical() << "Incorrect parameter";
+   else
+   {
+      if(args.size() >= 1) {
+        return setGpu(device, args.at(0));
+      }
+      else {
+        qCritical() << "Incorrect parameter";
+      }
    }
-
    return 0;
 }
