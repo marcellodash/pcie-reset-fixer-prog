@@ -106,6 +106,8 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
         qInfo() << "Device already removed";
     }
 
+    QThread::msleep(500);
+
     // Power off GPU
     if(!serial.setGpuPower(false)) {
         qCritical() << "GPU power off failed";
@@ -134,7 +136,8 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
     if(!pci.isDeviceExists(device))
     {
         qCritical() << "Device not found";
-        return -5;    }
+        return -5;
+    }
 
     return 0;
 }
