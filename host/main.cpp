@@ -92,7 +92,12 @@ int reset_GPU(const QString &device)
 
     if(!serialOpen) {
         qCritical() << "Cannot open serial";
-        //return -1;
+        return -1;
+    }
+
+    if(!serial.ping()) {
+        qCritical() << "Ping failed";
+        return -2;
     }
 
     qInfo() << "Remove device:" << device;
@@ -101,32 +106,35 @@ int reset_GPU(const QString &device)
         // None
     }
 
-    if(!serialOpen) {
-        if(!serial.ping()) {
-            qCritical() << "Ping failed";
-            //return -2;
-        }
-
-        // Power off GPU
-        serial.setGpuPower(false);
-
-        QThread::msleep(3000);
-
-        // Power on GPU
-        serial.setGpuPower(false);
-
-        QThread::msleep(1000);
+    // Power off GPU
+    if(!serial.setGpuPower(false)) {
+        qCritical() << "GPU power off failed";
+        return -3;
     }
+
+    QThread::msleep(3000);
+
+    // Power on GPU
+    if(!serial.setGpuPower(false)) {
+        qCritical() << "GPU power on failed";
+    }
+
+    QThread::msleep(1000);
 
     qInfo() << "Rescan";
 
     if(!pci.rescan())
     {
         qCritical() << "Rescan failed";
-        return -2;
+        return -4;
     }
 
-    //power_plug_pci.remove("");
+    QThread::msleep(300);
+
+    if(!pci.isDeviceExists(device))
+    {
+        qCritical() << "Device not found";
+        return -5;    }
 
     return 0;
 }

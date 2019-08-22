@@ -12,6 +12,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QDebug>
 
 #define SYSDRIVER "/sys/bus/pci/drivers/"
 #define SYSDEVICE "/sys/bus/pci/devices/"
@@ -73,7 +74,7 @@ bool PCI::rescan()
 
     if(file.write(value1, sizeof(value1)))
     {
-        return false;
+        return true; // FIXME
     }
 
     return true;
