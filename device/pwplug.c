@@ -26,21 +26,21 @@ int setD3Hot(struct pci_dev *dev)
 
    if(rc)
    {
-      pr_info("set PCI_D0 error\n");
+      pci_info(dev, "set PCI_D0 error\n");
    }
 
    rc = pci_set_power_state(dev, PCI_D3hot);
 
    if(rc)
    {
-      pr_info("set PCI_D3hot error\n");
+      pci_info(dev, "set PCI_D3hot error\n");
    }
 
    /*rc = pci_set_power_state(dev, PCI_D3cold);
 
    if(rc)
    {
-      pr_info("set PCI_D3cold error\n");
+      pci_info(dev, "set PCI_D3cold error\n");
    }*/
 
    return rc;
@@ -76,7 +76,7 @@ static void showPowerState(const char *desc, struct pci_dev *dev)
          strcpy(state, "Invalid PCI power state");
 	 break;
    }
-   pr_info("pwplug %s power state: %s\n", desc, state);
+   pci_info(dev, "pwplug %s power state: %s\n", desc, state);
 }
 
 static void pci_disable(struct pci_dev *dev)
@@ -89,16 +89,16 @@ static void pci_disable(struct pci_dev *dev)
    // Disable device
    pci_disable_device(dev);
 
-   pr_info("Reseting slot\n");
+   pci_info(dev, "Reseting slot\n");
    rc = pci_probe_reset_slot(dev->slot);
 
    if(rc) 
    {
-      pr_info("Failed reseting slot. reseting bus\n");
+      pci_info(dev, "Failed reseting slot. reseting bus\n");
       rc = pci_probe_reset_bus(dev->bus); 
       if(rc)
       {
-         pr_err("Failed reseting bus\n");	      
+         pci_err(dev, "Failed reseting bus\n");	      
       }
    }
 
@@ -106,14 +106,14 @@ static void pci_disable(struct pci_dev *dev)
 
    if(rc)
    {
-      pr_err("set PCI_D3hot error\n");
+      pci_err(dev, "set PCI_D3hot error\n");
    }*/
 
    rc = pci_set_power_state(dev, PCI_D3cold);
 
    if(rc)
    {
-      pr_info("set PCI_D3cold error\n");
+      pci_info(dev, "set PCI_D3cold error\n");
    }
 }
 
@@ -121,7 +121,7 @@ static void pci_disable(struct pci_dev *dev)
 static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 {
    int rc = 0;
-   pr_info("pwplug probe\n");
+   pci_info(dev, "probe\n");
    
    if (dev->hdr_type != PCI_HEADER_TYPE_NORMAL)
       return -EINVAL;
@@ -130,7 +130,7 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 
    if(rc)
    {
-      pr_err("Error enabling device\n");	  
+      pci_err(dev, "Error enabling device\n");	  
       return -ENODEV;
    }
 
@@ -138,11 +138,11 @@ static int probe(struct pci_dev *dev, const struct pci_device_id *id)
 
    if(dev->d3cold_allowed)
    {
-      pr_info("D3cold allowed\n");	   
+      pci_info(dev, "D3cold allowed\n");	   
    }
    else
    {
-      pr_info("D3cold not allowed\n");	   
+      pci_info(dev, "D3cold not allowed\n");	   
    }
 
    pci_d3cold_enable(dev);
@@ -158,7 +158,7 @@ static void remove(struct pci_dev *dev)
 {
    int rc = 0;
 
-   pr_info("pwplug remove\n");
+   pci_info(dev, "pwplug remove\n");
 
    showPowerState("current", dev);
 
@@ -166,9 +166,8 @@ static void remove(struct pci_dev *dev)
    
    if(rc)
    {
-      pr_err("set PCI_D0 error\n");
+      pci_err(dev, "set PCI_D0 error\n");
    }
-
 
    showPowerState("new", dev);
 }
