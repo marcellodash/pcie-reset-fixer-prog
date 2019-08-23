@@ -86,6 +86,15 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     PCIDRIVER vfio_pci("vfio-pci");
 
     SerialUsb serial;
+    if(!power_plug_pci.isDriverLoad()) {
+       qCritical() << "pwplug driver not loaded";
+       return 3;
+    }
+
+    if(!vfio_pci.isDriverLoad()) {
+       qCritical() << "vfio-pci driver not loaded";
+       return 4;
+    }
 
     serial.setVerbose(bVerbose);
 
