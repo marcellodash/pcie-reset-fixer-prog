@@ -9,7 +9,7 @@
 
 static bool bVerbose = false;
 
-int setGpu(bool value)
+static int setGpu(bool value)
 {
     SerialUsb serial;
 
@@ -38,14 +38,14 @@ int setGpu(bool value)
     return 0;
 }
 
-int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2)
+static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2)
 {
     PCI pci;
-    PCIDRIVER power_plug_pci("pwplug");
+    PCIDRIVER pwplug("pwplug");
     PCIDRIVER vfio_pci("vfio-pci");
 
     SerialUsb serial;
-    if(!power_plug_pci.isDriverLoad()) {
+    if(!pwplug.isDriverLoad()) {
        qCritical() << "pwplug driver not loaded";
        return 3;
     }
@@ -75,6 +75,29 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     for(auto device : devices) {
         if(!vfio_pci.unbind(device)) {
             qCritical() << "Error unbinding device: " << device;
+        }
+    }
+
+    qInfo() << "Unbind devices from pwplug";
+    for(auto device : devices) {
+        if(!pwplug.unbind(device)) {
+            qCritical() << "Error unbinding device: " << device;
+        }
+    }
+
+    qInfo() << "Bind devices to pwplug";
+    for(auto device : devices) {
+        if(!pwplug.bind(device)) {
+            qCritical() << "Error binding device: " << device;
+            return -1;
+        }
+    }
+
+    qInfo() << "Check devices binds to pwplug";
+    for(auto device : devices) {
+        if(!pwplug.isBind(device)) {
+            qCritical() << "Error device not binded to pwplug: " << device;
+            return -1;
         }
     }
 

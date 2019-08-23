@@ -129,10 +129,9 @@ bool PCIDRIVER::bind(const QString &device)
 
     if(file.write(device.toUtf8()) < 0)
     {
-        //return false;
+        return false;
     }
-
-    return isBind(device);
+    return true;
 }
 
 bool PCIDRIVER::unbind(const QString &device)
