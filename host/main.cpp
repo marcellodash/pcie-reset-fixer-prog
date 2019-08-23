@@ -93,6 +93,8 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
         }
     }
 
+    QThread::msleep(100);
+
     qInfo() << "Check devices binds to pwplug";
     for(auto device : devices) {
         if(!pwplug.isBind(device)) {
