@@ -9,7 +9,7 @@
 
 static bool bVerbose = false;
 
-int setGpu(const QString &device, const QString &command)
+int setGpu(const QStringList &devices, const QString &command)
 {
     SerialUsb serial;
 
@@ -31,9 +31,11 @@ int setGpu(const QString &device, const QString &command)
         return 1;
     }
 
-    if(!vfio_pci.isDeviceExists(device)) {
-        qCritical() << "Device " + device + " don't exist";
-        return 2;
+    for(auto device : devices) {
+        if(!vfio_pci.isDeviceExists(device)) {
+            qCritical() << "Device " + device + " don't exist";
+            return 2;
+        }
     }
 
     if(!power_plug_pci.isDriverLoad()) {
@@ -46,19 +48,21 @@ int setGpu(const QString &device, const QString &command)
        return 4;
     }
 
-    if(!vfio_pci.isBind(device)) {
-       qCritical() << "Device " << device << "must be binded on vfio-pci";
-       return 5;
-    }
+    for(auto device : devices) {
+        if(!vfio_pci.isBind(device)) {
+           qCritical() << "Device " << device << "must be binded on vfio-pci";
+           return 5;
+        }
 
-    // Unbind device on vfio_pci. Preparing to reset
-    if(!vfio_pci.unbind(device)) {
-        return 6;
-    }
+        // Unbind device on vfio_pci. Preparing to reset
+        if(!vfio_pci.unbind(device)) {
+            return 6;
+        }
 
-    // Bind device on pci-power-plug. Preparing to reset
-    if(!power_plug_pci.bind(device)) {
-        return 7;
+        // Bind device on pci-power-plug. Preparing to reset
+        if(!power_plug_pci.bind(device)) {
+            return 7;
+        }
     }
 
     if(!serial.setGpuPower(command == "1")) {
@@ -75,7 +79,7 @@ int setGpu(const QString &device, const QString &command)
     return 0;
 }
 
-int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
+int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2)
 {
     PCI pci;
     PCIDRIVER power_plug_pci("pwplug");
@@ -99,10 +103,11 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
         return -2;
     }
 
-    qInfo() << "Remove device:" << device;
-    if(!pci.remove(device))
-    {
-        qInfo() << "Device already removed";
+    qInfo() << "Remove device:" << devices;
+    for(auto device : devices) {
+        if(!pci.remove(device)) {
+            qInfo() << "Device already removed";
+        }
     }
 
     QThread::msleep(500);
@@ -134,10 +139,11 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
 
     QThread::msleep(300);
 
-    if(!pci.isDeviceExists(device))
-    {
-        qCritical() << "Device not found";
-        return -5;
+    for(auto device : devices) {
+        if(!pci.isDeviceExists(device))
+        {
+            qCritical() << "Device not found";
+        }
     }
 
     return 0;
@@ -175,8 +181,6 @@ int main(int argc, char *argv[])
 
    bVerbose = parser.isSet(verboseOption);
 
-   auto device = parser.value(deviceOption);
-
    if(bVerbose) qInfo() << "Pcie reset fixer";
 
    unsigned int delay1 = 4000, delay2 = 1000;
@@ -189,12 +193,19 @@ int main(int argc, char *argv[])
       delay2 = parser.value(delayOption2).toUInt();
    }
 
-   if(parser.isSet(resetOption) && parser.isSet(deviceOption))
-   {
-       return reset_GPU(device, delay1, delay2);
+   QStringList devices;
+
+   if(parser.isSet(deviceOption)) {
+       QRegExp rx("[, ]");// match a comma or a space
+       QStringList devices = parser.value(deviceOption).split(rx, QString::SkipEmptyParts);
    }
-   else if((args.size() >= 1)) {
-      return setGpu(device, args.at(0));
+
+   if(parser.isSet(resetOption) && devices.size())
+   {
+       return reset_GPU(devices, delay1, delay2);
+   }
+   else if((args.size() >= 1) && devices.size()) {
+      return setGpu(devices, args.at(0));
    }
    else {
       qCritical() << "Incorrect parameter";
