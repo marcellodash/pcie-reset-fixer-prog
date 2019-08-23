@@ -9,7 +9,7 @@
 
 static bool bVerbose = false;
 
-int setGpu(const QStringList &devices, const QString &command)
+int setGpu(bool value)
 {
     SerialUsb serial;
 
@@ -24,56 +24,15 @@ int setGpu(const QStringList &devices, const QString &command)
         return serial.getLastError();
     }
 
-    PCIDRIVER power_plug_pci("pwplug");
-    PCIDRIVER vfio_pci("vfio-pci");
-
-    if(command != "1" && command != "0") {
-        return 1;
-    }
-
-    for(auto device : devices) {
-        if(!vfio_pci.isDeviceExists(device)) {
-            qCritical() << "Device " + device + " don't exist";
-            return 2;
-        }
-    }
-
-    if(!power_plug_pci.isDriverLoad()) {
-       qCritical() << "pwplug-pci driver not loaded";
-       return 3;
-    }
-
-    if(!vfio_pci.isDriverLoad()) {
-       qCritical() << "vfio-pci driver not loaded";
-       return 4;
-    }
-
-    for(auto device : devices) {
-        if(!vfio_pci.isBind(device)) {
-           qCritical() << "Device " << device << "must be binded on vfio-pci";
-           return 5;
-        }
-
-        // Unbind device on vfio_pci. Preparing to reset
-        if(!vfio_pci.unbind(device)) {
-            return 6;
-        }
-
-        // Bind device on pci-power-plug. Preparing to reset
-        if(!power_plug_pci.bind(device)) {
-            return 7;
-        }
-    }
-
-    if(!serial.setGpuPower(command == "1")) {
+    if(!serial.setGpuPower(value)) {
         return serial.getLastError();
     }
 
-    if(command == "1") {
-        if(bVerbose) qInfo() << "GPU power on";
+    if(value) {
+        qInfo() << "GPU power on";
     }
     else {
-        if(bVerbose) qInfo() << "GPU power off";
+        qInfo() << "GPU power off";
     }
 
     return 0;
@@ -110,6 +69,13 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     if(!serial.ping()) {
         qCritical() << "Ping failed";
         return -2;
+    }
+
+    qInfo() << "Unbind devices from vfio-pci";
+    for(auto device : devices) {
+        if(!vfio_pci.unbind(device)) {
+            qCritical() << "Error unbinding device: " << device;
+        }
     }
 
     qInfo() << "Remove device:" << devices;
@@ -160,6 +126,8 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
 
 int main(int argc, char *argv[])
 {
+   int ret = 0;
+
    QCoreApplication app(argc, argv);
 
    QCommandLineParser parser;
@@ -209,15 +177,31 @@ int main(int argc, char *argv[])
        devices = parser.value(deviceOption).split(rx, QString::SkipEmptyParts);
    }
 
-   if(parser.isSet(resetOption) && devices.size())
+   if(parser.isSet(resetOption))
    {
-       return reset_GPU(devices, delay1, delay2);
+      if(devices.size()) {
+         ret = reset_GPU(devices, delay1, delay2);
+      }
+      else {
+         qCritical() << "Incorrect parameter: devices";
+         ret = -1;
+      }
    }
-   else if((args.size() >= 1) && devices.size()) {
-      return setGpu(devices, args.at(0));
+   else if(args.size() >= 1) {
+      if(args[0] == "on")
+         ret = setGpu(true);
+      else if(args[0] == "off") {
+         ret = setGpu(false);
+      }
+      else {
+         qCritical() << "Incorrect parameter";
+         ret = -1;
+      }
    }
    else {
       qCritical() << "Incorrect parameter";
+      ret = -1;
    }
-   return 0;
+
+   return ret;
 }
