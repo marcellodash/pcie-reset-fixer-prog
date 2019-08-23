@@ -18,8 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         pci.cpp \
-        serial.cpp \
-        task.cpp
+        serial.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -28,5 +27,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     pci.h \
-    serial.h \
-    task.h
+    serial.h
