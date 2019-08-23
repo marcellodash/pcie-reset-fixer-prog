@@ -54,22 +54,18 @@ bool SerialUsb::sendCommand(char cmd)
         QByteArray responseData;
 
         int retry = 100;
-        do
+
+        while(responseData.size() < 7)
         {
             if(m_Serial.waitForReadyRead(m_Timeout)) {
-                responseData = m_Serial.peek(7);
+              responseData += m_Serial.readAll();
             }
 
             if(retry-- == 0) {
-                break;
+                m_LastError = BASE_ERROR + 3;
+                if(m_Verbose) qInfo() << "Size error: " << responseData.size();
+                return false;
             }
-        }
-        while(responseData.size() < 7);
-
-        if(responseData.size() < 7) {
-            m_LastError = BASE_ERROR + 3;
-            if(m_Verbose) qInfo() << "Size error: " << responseData.size();
-            return false;
         }
 
         if(responseData[0] != '*'  ||
@@ -95,5 +91,5 @@ bool SerialUsb::setGpuPower(bool value)
 
 bool SerialUsb::ping()
 {
-    return sendCommand('3');
+    return sendCommand('9');
 }
