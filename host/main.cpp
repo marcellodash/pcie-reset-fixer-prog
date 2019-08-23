@@ -101,6 +101,10 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
             qCritical() << "Error device not binded to pwplug: " << device;
             return -1;
         }
+
+        if(pci.isD3ColdAllowed(device)) {
+            qInfo() << "D3Cold allowed " << device;
+        }
     }
 
     qInfo() << "Remove devices from kernel:" << devices;
@@ -137,6 +141,8 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
         return -4;
     }
 
+    QThread::msleep(300);
+
     qInfo() << "Unbind devices from pwplug";
     for(auto device : devices) {
         if(!pwplug.unbind(device)) {
@@ -150,7 +156,6 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
             qCritical() << "Error binding device: " << device;
         }
     }
-
 
     QThread::msleep(300);
 

@@ -87,6 +87,24 @@ bool PCI::isDeviceExists(const QString &device)
     return dir.exists();
 }
 
+bool PCI::isD3ColdAllowed(const QString &device)
+{
+    char value[3];
+
+    QFile file(SYSDEVICE + device + "/d3cold_allowed");
+
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+    if(file.read(value, sizeof(value)) < 0)
+    {
+        return false;
+    }
+
+    return value[0] == '1';
+}
 
 bool PCIDRIVER::isBind(const QString &device)
 {

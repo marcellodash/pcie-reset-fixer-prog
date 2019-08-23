@@ -19,6 +19,7 @@ public:
    bool enable(const QString &device, bool value);
    bool remove(const QString &device);
    bool isDeviceExists(const QString &device);
+   bool isD3ColdAllowed(const QString &device);
    bool rescan();
 
 private:
