@@ -103,7 +103,7 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
         }
     }
 
-    qInfo() << "Remove device:" << devices;
+    qInfo() << "Remove devices from kernel:" << devices;
     for(auto device : devices) {
         if(!pci.remove(device)) {
             qInfo() << "Device already removed: " << device;
@@ -136,6 +136,21 @@ static int reset_GPU(const QStringList &devices, unsigned int time1, unsigned in
         qCritical() << "Rescan failed";
         return -4;
     }
+
+    qInfo() << "Unbind devices from pwplug";
+    for(auto device : devices) {
+        if(!pwplug.unbind(device)) {
+            qCritical() << "Error unbinding device: " << device;
+        }
+    }
+
+    qInfo() << "Bind devices to vfio-pci";
+    for(auto device : devices) {
+        if(!vfio_pci.bind(device)) {
+            qCritical() << "Error binding device: " << device;
+        }
+    }
+
 
     QThread::msleep(300);
 
