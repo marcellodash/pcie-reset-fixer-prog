@@ -94,7 +94,7 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     auto serialOpen = serial.open();
 
     if(!serialOpen) {
-        qCritical() << "Cannot open serial";
+        qCritical() << "Cannot open serial " + serial.getPortName();
         return -1;
     }
 
@@ -106,7 +106,7 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     qInfo() << "Remove device:" << devices;
     for(auto device : devices) {
         if(!pci.remove(device)) {
-            qInfo() << "Device already removed";
+            qInfo() << "Device already removed: " << device;
         }
     }
 
@@ -142,7 +142,7 @@ int reset_GPU(const QStringList &devices, unsigned int time1, unsigned int time2
     for(auto device : devices) {
         if(!pci.isDeviceExists(device))
         {
-            qCritical() << "Device not found";
+            qCritical() << "Device not found: " << device;
         }
     }
 
