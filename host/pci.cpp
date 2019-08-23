@@ -36,7 +36,7 @@ bool PCI::enable(const QString &device, bool value)
         return false;
     }
 
-    if(file.write(v, 2))
+    if(file.write(v, 2) < 0)
     {
         return false;
     }
@@ -54,7 +54,7 @@ bool PCI::remove(const QString &device)
         return false;
     }
 
-    if(file.write(value1, sizeof(value1)))
+    if(file.write(value1, sizeof(value1)) < 0)
     {
         return false;
     }
@@ -72,9 +72,9 @@ bool PCI::rescan()
         return false;
     }
 
-    if(file.write(value1, sizeof(value1)))
+    if(file.write(value1, sizeof(value1)) < 0)
     {
-        return true; // FIXME
+        return false;
     }
 
     return true;

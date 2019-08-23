@@ -108,6 +108,7 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
     QThread::msleep(500);
 
     // Power off GPU
+    qInfo() << "Power off GPU";
     if(!serial.setGpuPower(false)) {
         qCritical() << "GPU power off failed";
         return -3;
@@ -116,6 +117,7 @@ int reset_GPU(const QString &device, unsigned int time1, unsigned int time2)
     QThread::msleep(time1);
 
     // Power on GPU
+    qInfo() << "Power on GPU";
     if(!serial.setGpuPower(true)) {
         qCritical() << "GPU power on failed";
     }
@@ -158,7 +160,7 @@ int main(int argc, char *argv[])
 
    QCommandLineOption deviceOption(QStringList() << "s" << "device",
            "PCIe device",
-           "[[[[<domain>]:]<bus>]:][<slot>][.[<func>]]");
+           "domain:bus:slot.func");
    parser.addOption(deviceOption);
 
    QCommandLineOption delayOption1(QStringList() << "d" << "delay1",  "Delay 1", "miliseconds");
