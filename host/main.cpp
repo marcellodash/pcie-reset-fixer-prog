@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 
    if(parser.isSet(deviceOption)) {
        QRegExp rx("[, ]");// match a comma or a space
-       QStringList devices = parser.value(deviceOption).split(rx, QString::SkipEmptyParts);
+       devices = parser.value(deviceOption).split(rx, QString::SkipEmptyParts);
    }
 
    if(parser.isSet(resetOption) && devices.size())
